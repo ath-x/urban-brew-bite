@@ -46,6 +46,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active & Pending Tracks
 
+- [ ] **Track: System-Wide Quality Audit & Optimization (Architectural Cleanup)**
+  *Link: [./tracks/system-wide-audit/](./tracks/system-wide-audit/)*
+
 - [ ] **Track: Client Onboarding Protocol (The "Discovery Agent" & Auto-Provisioning)**
   *Link: [./tracks/client-onboarding-protocol/](./tracks/client-onboarding-protocol/)*
 

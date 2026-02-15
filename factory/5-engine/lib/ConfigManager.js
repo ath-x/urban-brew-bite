@@ -36,7 +36,11 @@ export class AthenaConfigManager {
                 sites: path.join(this.root, 'sites'),
                 input: path.join(this.root, 'input'),
                 logs: path.join(this.root, 'factory/output/logs'),
-                config: path.join(this.root, 'factory/config')
+                config: path.join(this.root, 'factory/config'),
+                templates: path.join(this.root, 'factory/2-templates'),
+                sitetypes: path.join(this.root, 'factory/3-sitetypes'),
+                engine: path.join(this.root, 'factory/5-engine'),
+                skills: path.join(this.root, 'factory/SKILLS')
             },
             github: {
                 user: env.GITHUB_USER || '',

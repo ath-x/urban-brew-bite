@@ -1,6 +1,7 @@
 # 📋 TODO - Athena CMS (Master Plan)
 
 ## 🎯 Upcoming Sprint (Next Week): Validation & Launch
+- [ ] **System-Wide Quality Audit**: Perform architectural scan and identify technical debt.
 - [ ] **Onboarding Validation**: Execute first live "Digital Strategist" onboarding session via CLI/Dashboard.
 - [ ] **Operation War Game**: Execute first end-to-end autonomous agent test via Gmail.
 - [ ] **Athena Hub Launch**: Final content polish and live Stripe payment test.

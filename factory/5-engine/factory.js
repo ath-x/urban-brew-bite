@@ -11,8 +11,11 @@ import { AssetScavenger } from './lib/AssetScavenger.js';
 import * as recast from 'recast';
 import * as babelParser from '@babel/parser';
 
+import { AthenaConfigManager } from './lib/ConfigManager.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const defaultCM = new AthenaConfigManager(path.resolve(__dirname, '../..'));
 
 // --- UTILITIES ---
 
@@ -21,8 +24,8 @@ export function validateProjectName(name) {
         .replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 }
 
-export function generateClientInstructions(projectDir, projectName, blueprint) {
-    const templatePath = path.join(__dirname, '../2-templates/docs/client-manual.md');
+export function generateClientInstructions(projectDir, projectName, blueprint, configManager = defaultCM) {
+    const templatePath = path.join(configManager.get('paths.templates'), 'docs/client-manual.md');
     const destPath = path.join(projectDir, 'HANDLEIDING_BEHEER.md');
 
     if (fs.existsSync(templatePath)) {
@@ -49,9 +52,8 @@ export function generateClientInstructions(projectDir, projectName, blueprint) {
     }
 }
 
-export function generateReadme(projectDir, safeName) {
-    const { GITHUB_USER, GITHUB_ORG } = process.env;
-    const ORG = GITHUB_ORG || GITHUB_USER || "athena-cms";
+export function generateReadme(projectDir, safeName, configManager = defaultCM) {
+    const ORG = configManager.get('github.org') || configManager.get('github.user') || "athena-cms";
     const destPath = path.join(projectDir, 'README.md');
     const content = `https://${ORG}.github.io/${safeName}`;
     fs.writeFileSync(destPath, content);
@@ -147,11 +149,12 @@ export class TransformationEngine {
  * Project Generator
  */
 export class ProjectGenerator {
-    constructor(config) {
+    constructor(config, configManager = defaultCM) {
         this.config = config;
+        this.configManager = configManager;
         this.safeName = validateProjectName(config.projectName);
-        this.projectDir = path.resolve(__dirname, '../../sites', this.safeName);
-        this.tplRoot = path.join(__dirname, '../2-templates');
+        this.projectDir = path.join(configManager.get('paths.sites'), this.safeName);
+        this.tplRoot = configManager.get('paths.templates');
     }
 
     async run() {
@@ -163,7 +166,7 @@ export class ProjectGenerator {
         this.copyBoilerplate();
         this.generateSpecialComponents();
         await this.finalize();
-        console.log(`\n✨  PROJECT READY: ../sites/${this.safeName}`);
+        console.log(`\n✨  PROJECT READY: sites/${this.safeName}`);
     }
 
     initDirs() {
@@ -171,9 +174,9 @@ export class ProjectGenerator {
     }
 
     resolvePaths() {
-        const { siteType, siteModel, layoutName } = this.config;
-        this.editorStrategy = fs.existsSync(path.join(__dirname, '../3-sitetypes/docked', siteType)) ? 'docked' : 'autonomous';
-        this.siteTypePath = path.join(__dirname, '../3-sitetypes', this.editorStrategy, siteType);
+        const { siteType } = this.config;
+        this.editorStrategy = fs.existsSync(path.join(this.configManager.get('paths.sitetypes'), 'docked', siteType)) ? 'docked' : 'autonomous';
+        this.siteTypePath = path.join(this.configManager.get('paths.sitetypes'), this.editorStrategy, siteType);
         this.blueprint = JSON.parse(fs.readFileSync(path.join(this.siteTypePath, 'blueprint', path.basename(this.config.blueprintFile)), 'utf8'));
 
         // BLUEPRINT VERSION MIGRATION (Phase 4.3)
@@ -506,17 +509,24 @@ Sitemap: ${domain}/sitemap.xml`;
 
     syncInputData() {
         const projectInputBase = (this.config.sourceProject || this.config.projectName).replace('-site', '');
-        const jsonDir = path.resolve(this.projectDir, '../../input', projectInputBase, 'json-data');
-        const tsvDir = path.resolve(this.projectDir, '../../input', projectInputBase, 'tsv-data');
+        const jsonDir = path.join(this.configManager.get('paths.input'), projectInputBase, 'json-data');
+        const tsvDir = path.join(this.configManager.get('paths.input'), projectInputBase, 'tsv-data');
+        
         if (fs.existsSync(jsonDir) && fs.readdirSync(jsonDir).some(f => f.endsWith('.json'))) {
             fs.cpSync(jsonDir, path.join(this.projectDir, 'src/data'), { recursive: true });
         } else if (fs.existsSync(tsvDir) && fs.readdirSync(tsvDir).some(f => f.endsWith('.tsv'))) {
-            try { execSync(`node 5-engine/sync-tsv-to-json.js "${projectInputBase}" "${this.safeName}"`, { cwd: path.resolve(__dirname, '../..'), stdio: 'ignore' }); } catch (e) { }
+            try { 
+                const scriptPath = path.join(this.configManager.get('paths.engine'), 'sync-tsv-to-json.js');
+                execSync(`"${process.execPath}" "${scriptPath}" "${projectInputBase}" "${this.safeName}"`, { 
+                    cwd: this.configManager.get('paths.factory'), 
+                    stdio: 'ignore' 
+                }); 
+            } catch (e) { }
         }
     }
 }
 
-export async function createProject(config) {
-    const generator = new ProjectGenerator(config);
+export async function createProject(config, configManager = defaultCM) {
+    const generator = new ProjectGenerator(config, configManager);
     return await generator.run();
 }

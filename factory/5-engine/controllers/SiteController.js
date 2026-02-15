@@ -12,8 +12,9 @@ import { AthenaDataManager } from '../lib/DataManager.js';
 import { AthenaInterpreter } from '../lib/Interpreter.js';
 
 export class SiteController {
-    constructor(configManager) {
+    constructor(configManager, executionService) {
         this.configManager = configManager;
+        this.execService = executionService;
         this.root = configManager.get('paths.root');
         this.sitesDir = configManager.get('paths.sites');
         this.dataManager = new AthenaDataManager(configManager.get('paths.factory'));
@@ -129,6 +130,111 @@ export class SiteController {
     }
 
     /**
+     * Get theme and visual style information for a site
+     */
+    getThemeInfo(id) {
+        const siteDir = path.join(this.sitesDir, id);
+        if (!fs.existsSync(siteDir)) throw new Error('Site niet gevonden');
+
+        const themesDir = path.join(this.configManager.get('paths.factory'), '2-templates/boilerplate/docked/css');
+        const themes = fs.existsSync(themesDir)
+            ? fs.readdirSync(themesDir).filter(f => f.endsWith('.css')).map(f => f.replace('.css', ''))
+            : [];
+
+        let currentTheme = null;
+        const indexCss = path.join(siteDir, 'src/index.css');
+        if (fs.existsSync(indexCss)) {
+            const content = fs.readFileSync(indexCss, 'utf8');
+            const match = content.match(/@import\s+["']\.\/css\/([a-z0-9-]+)\.css["']/);
+            if (match) currentTheme = match[1];
+        }
+        
+        return { themes, currentTheme };
+    }
+
+    /**
+     * Directly update a data field in a site's JSON
+     */
+    updateData(id, { table, rowId, field, value }) {
+        const filePath = path.join(this.sitesDir, id, 'src', 'data', `${table.toLowerCase()}.json`);
+        if (!fs.existsSync(filePath)) throw new Error(`Tabel ${table} niet gevonden.`);
+
+        const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        let updated = false;
+        if (Array.isArray(data)) {
+            for (let i = 0; i < data.length; i++) {
+                if (data[i].id == rowId || data[i].uuid == rowId || i == rowId) {
+                    data[i][field] = value;
+                    updated = true;
+                    break;
+                }
+            }
+        }
+
+        if (updated) {
+            fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+            return { success: true };
+        }
+        throw new Error("Rij niet gevonden.");
+    }
+
+    /**
+     * Get installation status (node_modules existence)
+     */
+    getStatus(name) {
+        const siteDir = path.join(this.sitesDir, name);
+        const nodeModules = path.join(siteDir, 'node_modules');
+        return { 
+            isInstalled: fs.existsSync(nodeModules),
+            isInstalling: false // Simplified for now, activeInstalls is handled in dashboard memory
+        };
+    }
+
+    /**
+     * Install dependencies for a site
+     */
+    install(name) {
+        const siteDir = path.join(this.sitesDir, name);
+        if (!fs.existsSync(siteDir)) throw new Error("Site niet gevonden");
+
+        const child = spawn('pnpm', ['install'], {
+            cwd: siteDir,
+            detached: true,
+            stdio: 'ignore',
+            env: { ...process.env }
+        });
+        child.unref();
+        return { success: true, message: "Installatie gestart op de achtergrond" };
+    }
+
+    /**
+     * Start/Get preview server for a site
+     */
+    async preview(id) {
+        const siteDir = path.join(this.sitesDir, id);
+        if (!fs.existsSync(siteDir)) throw new Error('Site niet gevonden');
+
+        const previewPort = this.getSitePort(id, siteDir);
+        
+        // Return URL if already running
+        return { success: true, url: `http://localhost:${previewPort}/${id}/` };
+    }
+
+    /**
+     * Helper to get site port (duplicated from ServerController for autonomy)
+     */
+    getSitePort(siteId, siteDir) {
+        const registryPath = path.join(this.configManager.get('paths.factory'), 'config/site-ports.json');
+        if (fs.existsSync(registryPath)) {
+            try {
+                const ports = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+                if (ports[siteId]) return ports[siteId];
+            } catch (e) { }
+        }
+        return 5000;
+    }
+
+    /**
      * Sync local JSON data to Google Sheet
      */
     async syncToSheet(id) {
@@ -156,11 +262,6 @@ export class SiteController {
      * Run a maintenance script (e.g. sync-deployment-status)
      */
     runScript(script, args) {
-        const scriptPath = path.join(this.configManager.get('paths.factory'), '5-engine', script);
-        const output = execSync(`"${process.execPath}" "${scriptPath}" ${args.map(a => `"${a}"`).join(' ')}`, {
-            cwd: this.configManager.get('paths.factory'),
-            env: { ...process.env }
-        }).toString();
-        return { success: true, details: output };
+        return this.execService.runEngineScript(script, args);
     }
 }

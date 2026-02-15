@@ -7,10 +7,12 @@ import fs from 'fs';
 import path from 'path';
 import { validateProjectName } from '../factory.js';
 import { execSync } from 'child_process';
+import { deleteLocalProject, deleteRemoteRepo } from '../cleanup-wizard.js';
 
 export class ProjectController {
-    constructor(configManager) {
+    constructor(configManager, executionService) {
         this.configManager = configManager;
+        this.execService = executionService;
         this.root = configManager.get('paths.root');
         this.inputDir = configManager.get('paths.input');
     }
@@ -114,11 +116,26 @@ export class ProjectController {
      * Create a data source project from an existing site's JSON data
      */
     createFromSite(sourceSiteName, targetProjectName) {
-        const tool = path.join(this.configManager.get('paths.factory'), '5-engine', 'site-to-datasource-generator.js');
-        const output = execSync(`"${process.execPath}" "${tool}" "${sourceSiteName}" "${targetProjectName}"`, {
-            cwd: this.configManager.get('paths.factory'),
-            env: { ...process.env }
-        }).toString();
-        return { success: true, message: `Data Bron '${targetProjectName}' succesvol gegenereerd!`, details: output };
+        return this.execService.runEngineScript('site-to-datasource-generator.js', [sourceSiteName, targetProjectName]);
+    }
+
+    /**
+     * Delete project parts (local data, local site, remote repo)
+     */
+    async deleteProject(id, { deleteSite, deleteData, deleteRemote }) {
+        let logs = [];
+        if (deleteSite || deleteData) {
+            const result = deleteLocalProject(id, deleteSite, deleteData);
+            logs = [...logs, ...result.logs];
+        }
+        if (deleteRemote) {
+            try {
+                const remoteResult = await deleteRemoteRepo(id);
+                logs.push(`✅ ${remoteResult.message}`);
+            } catch (e) {
+                logs.push(`ℹ️ Geen remote repo verwijderd: ${e.message}`);
+            }
+        }
+        return { success: true, logs };
     }
 }
