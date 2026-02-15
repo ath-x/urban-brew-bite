@@ -313,6 +313,28 @@ app.post('/api/payments/create-session', async (req, res) => {
 
 // --- ACTIONS ---
 
+app.post('/api/onboard', async (req, res) => {
+    try {
+        const { companyName, websiteUrl, clientEmail } = req.body;
+        if (!companyName) return res.status(400).json({ error: "Bedrijfsnaam is verplicht" });
+
+        const tool = path.join(root, '5-engine', 'onboarding-wizard.js');
+        console.log(`[ONBOARDING] Start voor: ${companyName}`);
+
+        // We gebruiken execSync en geven argumenten door
+        const output = execSync(`"${process.execPath}" "${tool}" "${companyName}" "${websiteUrl || ''}" "${clientEmail || ''}"`, {
+            cwd: root,
+            env: { ...process.env }
+        }).toString();
+
+        res.json({ success: true, message: `Onboarding voltooid voor ${companyName}!`, details: output });
+    } catch (e) {
+        const stderr = e.stderr ? e.stderr.toString() : e.message;
+        console.error(`[ONBOARDING] Fout:`, stderr);
+        res.status(500).json({ success: false, error: stderr });
+    }
+});
+
 app.post('/api/projects/create', (req, res) => {
     try {
         res.json(projectCtrl.create(req.body.projectName));

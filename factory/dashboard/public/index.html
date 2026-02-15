@@ -80,10 +80,16 @@
             <header class="top-bar">
                 <div style="display: flex; align-items: center; gap: 20px;">
                     <h2 id="page-title">Sites</h2>
-                    <button id="header-create-btn" onclick="showSection('create')" class="primary-btn success-btn"
-                        style="padding: 8px 15px; font-size: 0.8rem;">
-                        <i class="fa-solid fa-plus"></i> Nieuwe Site
-                    </button>
+                    <div class="flex-row" style="gap: 10px;">
+                        <button onclick="openOnboardingModal()" class="primary-btn"
+                            style="padding: 8px 15px; font-size: 0.8rem; background: var(--purple);">
+                            <i class="fa-solid fa-user-plus"></i> Nieuwe Klant
+                        </button>
+                        <button id="header-create-btn" onclick="showSection('create')" class="primary-btn success-btn"
+                            style="padding: 8px 15px; font-size: 0.8rem;">
+                            <i class="fa-solid fa-plus"></i> Nieuwe Site
+                        </button>
+                    </div>
                 </div>
                 <div class="server-info">
                     <span class="label">Local Server</span>
@@ -1391,6 +1397,46 @@
                     </ul>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Onboarding Modal -->
+    <div id="onboarding-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('onboarding-modal')">&times;</span>
+            <h3>🚀 Client Onboarding</h3>
+            <p class="muted">Maak een technisch fundament voor een nieuwe klant.</p>
+            
+            <div class="form-group mt-20">
+                <label>Bedrijfsnaam</label>
+                <input type="text" id="onboard-company-name" placeholder="bv. Bakkerij Janssen">
+            </div>
+
+            <div class="form-group">
+                <label>Bestaande Website URL (voor scraping)</label>
+                <input type="text" id="onboard-website-url" placeholder="https://www.bakkerijjanssen.be">
+            </div>
+
+            <div class="form-group">
+                <label>E-mail Client (voor Sheet toegang)</label>
+                <input type="email" id="onboard-client-email" placeholder="klant@voorbeeld.be">
+            </div>
+
+            <div class="info-box mb-20">
+                <p class="small"><i class="fa-solid fa-wand-sparkles accent"></i> <strong>Tip:</strong> Dit proces maakt een input-folder, provisiont een Google Sheet en scrapet de bestaande site.</p>
+            </div>
+
+            <button onclick="runOnboarding()" class="primary-btn full-width" style="background: var(--purple);">
+                <i class="fa-solid fa-rocket"></i> Start Onboarding
+            </button>
+            
+            <div class="flex-row gap-10 mt-10">
+                <button onclick="alert('Open de terminal voor de volledige interactieve Discovery Interview!')" class="secondary-btn flex-1 small">
+                    <i class="fa-solid fa-comments"></i> Discovery Interview
+                </button>
+            </div>
+
+            <div id="onboarding-log" class="log-output hidden mt-20"></div>
         </div>
     </div>
 

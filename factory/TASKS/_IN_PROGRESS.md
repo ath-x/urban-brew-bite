@@ -1,6 +1,11 @@
 # 🚧 IN PROGRESS - Athena CMS
 
 ## Current Sprint: Autonomous Operations & Simulation
+- [ ] **Track: Client Onboarding Protocol (The "Discovery Agent")**
+  - [ ] Define `ONBOARDING_PROTOCOL.md` and technical specifications.
+  - [ ] Implement `factory/5-engine/onboarding-wizard.js`.
+  - [ ] Create `skill-athena-onboarding` for Gemini CLI.
+  - [ ] Integrate with `auto-sheet-provisioner.js` and `athena-scraper.js`.
 - [ ] **Track: Operation War Game (Commercial Simulation & Autonomous Ops)**
   - [x] Implement real-world email connectivity (Gmail/IMAP).
   - [x] Develop "Customer Simulator" utility for persona-based requests.

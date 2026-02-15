@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "node ./5-engine/athena.js",
+    "onboard": "node 5-engine/onboarding-wizard.js",
+    "wizard": "node 5-engine/site-wizard.js",
     "test": "vitest run",
     "status": "node 5-engine/generate-sites-overview.js"
   },

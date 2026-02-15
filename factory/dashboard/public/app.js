@@ -2808,3 +2808,59 @@ window.addEventListener('keydown', (e) => {
         });
     }
 });
+
+// --- ONBOARDING FUNCTIONS ---
+function openOnboardingModal() {
+    document.getElementById('onboard-company-name').value = '';
+    document.getElementById('onboard-website-url').value = '';
+    document.getElementById('onboard-client-email').value = '';
+    const log = document.getElementById('onboarding-log');
+    log.classList.add('hidden');
+    log.innerHTML = '';
+    openModal('onboarding-modal');
+}
+
+async function runOnboarding() {
+    const companyName = document.getElementById('onboard-company-name').value.trim();
+    const websiteUrl = document.getElementById('onboard-website-url').value.trim();
+    const clientEmail = document.getElementById('onboard-client-email').value.trim();
+    const log = document.getElementById('onboarding-log');
+
+    if (!companyName) return alert("Geef een bedrijfsnaam op.");
+
+    log.classList.remove('hidden');
+    log.innerHTML = `<span class="accent">🚀 Onboarding gestart voor ${companyName}...</span><br><br>`;
+
+    const btn = event.currentTarget;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Bezig...';
+
+    try {
+        const res = await fetch(`${API}/onboard`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ companyName, websiteUrl, clientEmail })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            log.innerHTML += `<span class="success">✅ ${data.message}</span><br>`;
+            if (data.details) {
+                log.innerHTML += `<pre style="font-size: 0.7rem; color: var(--text-muted); margin-top: 10px; white-space: pre-wrap;">${data.details}</pre>`;
+            }
+            setTimeout(() => {
+                closeModal('onboarding-modal');
+                loadProjects();
+                showSection('projects');
+            }, 3000);
+        } else {
+            log.innerHTML += `<span class="error">❌ Fout: ${data.error}</span>`;
+        }
+    } catch (e) {
+        log.innerHTML += `<span class="error">❌ Netwerkfout: ${e.message}</span>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
