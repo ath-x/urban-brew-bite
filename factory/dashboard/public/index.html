@@ -819,6 +819,11 @@
 
                     <div class="form-group">
                         <label>Business Beschrijving</label>
+                        <div class="flex-row gap-10 mb-10">
+                            <button type="button" onclick="loadDiscoveryIntoWizard()" class="secondary-btn small" style="font-size: 0.7rem; padding: 5px 10px;">
+                                <i class="fa-solid fa-file-import"></i> Gebruik Discovery Rapport
+                            </button>
+                        </div>
                         <textarea id="sitetype-business" rows="4"
                             placeholder="Beschrijf het soort bedrijf/de branche waarvoor dit site-type bedoeld is..."
                             required></textarea>
@@ -1403,38 +1408,61 @@
 
     <!-- Onboarding Modal -->
     <div id="onboarding-modal" class="modal hidden">
-        <div class="modal-content">
+        <div class="modal-content large">
             <span class="close-btn" onclick="closeModal('onboarding-modal')">&times;</span>
-            <h3>🚀 Client Onboarding</h3>
-            <p class="muted">Maak een technisch fundament voor een nieuwe klant.</p>
+            <h3>🤝 Client Onboarding & Strategy</h3>
+            <p class="muted">Start een nieuw traject voor een klant.</p>
+
+            <div class="tabs mt-20">
+                <button class="tab-link active" onclick="openOnboardTab(event, 'onboard-tech')">1. Technische Setup</button>
+                <button class="tab-link" onclick="openOnboardTab(event, 'onboard-strategy')">2. Strategie Chat</button>
+            </div>
             
-            <div class="form-group mt-20">
-                <label>Bedrijfsnaam</label>
-                <input type="text" id="onboard-company-name" placeholder="bv. Bakkerij Janssen">
-            </div>
+            <!-- TAB 1: TECH -->
+            <div id="onboard-tech" class="tab-content active" style="display: block;">
+                <div class="form-group mt-20">
+                    <label>Bedrijfsnaam</label>
+                    <input type="text" id="onboard-company-name" placeholder="bv. Bakkerij Janssen">
+                </div>
 
-            <div class="form-group">
-                <label>Bestaande Website URL (voor scraping)</label>
-                <input type="text" id="onboard-website-url" placeholder="https://www.bakkerijjanssen.be">
-            </div>
+                <div class="form-group">
+                    <label>Bestaande Website URL (optioneel)</label>
+                    <input type="text" id="onboard-website-url" placeholder="https://www.bakkerijjanssen.be">
+                </div>
 
-            <div class="form-group">
-                <label>E-mail Client (voor Sheet toegang)</label>
-                <input type="email" id="onboard-client-email" placeholder="klant@voorbeeld.be">
-            </div>
+                <div class="form-group">
+                    <label>E-mail Client (optioneel)</label>
+                    <input type="email" id="onboard-client-email" placeholder="klant@voorbeeld.be">
+                </div>
 
-            <div class="info-box mb-20">
-                <p class="small"><i class="fa-solid fa-wand-sparkles accent"></i> <strong>Tip:</strong> Dit proces maakt een input-folder, provisiont een Google Sheet en scrapet de bestaande site.</p>
-            </div>
+                <div class="info-box mb-20">
+                    <p class="small"><i class="fa-solid fa-wand-sparkles accent"></i> <strong>Automatisering:</strong> Dit proces maakt een data bron map aan, provisiont een Google Sheet en start (indien URL opgegeven) de eerste scrape.</p>
+                </div>
 
-            <button onclick="runOnboarding()" class="primary-btn full-width" style="background: var(--purple);">
-                <i class="fa-solid fa-rocket"></i> Start Onboarding
-            </button>
-            
-            <div class="flex-row gap-10 mt-10">
-                <button onclick="alert('Open de terminal voor de volledige interactieve Discovery Interview!')" class="secondary-btn flex-1 small">
-                    <i class="fa-solid fa-comments"></i> Discovery Interview
+                <button onclick="runOnboarding()" class="primary-btn full-width" style="background: var(--purple);">
+                    <i class="fa-solid fa-rocket"></i> Provisioning Starten
                 </button>
+            </div>
+
+            <!-- TAB 2: STRATEGY CHAT -->
+            <div id="onboard-strategy" class="tab-content" style="display: none;">
+                <div class="chat-container">
+                    <div id="onboard-chat-history" class="chat-history">
+                        <div class="chat-msg ai">
+                            <p>Hallo! Ik ben je <strong>Digital Strategist</strong>. Laten we samen de business-doelen van je nieuwe klant in kaart brengen. Waar moet de focus op liggen?</p>
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <textarea id="onboard-chat-input" placeholder="Typ je antwoord... (Enter om te verzenden, Shift+Enter voor nieuwe regel)" onkeydown="handleOnboardChatKey(event)" oninput="autoGrowChatInput(this)"></textarea>
+                        <button onclick="sendOnboardChatMessage()" class="icon-btn-large"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </div>
+                
+                <div class="flex-row gap-10 mt-20">
+                    <button onclick="finalizeInterview()" class="primary-btn success-btn flex-1">
+                        <i class="fa-solid fa-check-double"></i> Interview Afronden & Dossier Opslaan
+                    </button>
+                </div>
             </div>
 
             <div id="onboarding-log" class="log-output hidden mt-20"></div>

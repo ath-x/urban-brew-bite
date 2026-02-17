@@ -45,6 +45,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track: Renaming Media Tools & Scripts (Terminology Standardization)**
   *Link: [./tracks/rename-media-tools-20260217/](./tracks/rename-media-tools-20260217/)*
 
+- [x] **Track: Web-Based Discovery Agent & Flexible Onboarding**
+  *Link: [./tracks/web-discovery-agent-20260217/](./tracks/web-discovery-agent-20260217/)*
+
 ---
 
 ## Active & Pending Tracks

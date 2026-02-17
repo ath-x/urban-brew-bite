@@ -25,8 +25,8 @@ async function runOnboarding() {
 
     const args = process.argv.slice(2);
     let rawName = args[0];
-    let websiteUrl = args[1];
-    let clientEmail = args[2];
+    let websiteUrl = (args[1] === 'none' || args[1] === 'null' || !args[1]) ? null : args[1];
+    let clientEmail = (args[2] === 'none' || args[2] === 'null' || !args[2]) ? null : args[2];
 
     if (!rawName) {
         rawName = await ask('\n🏢 Bedrijfsnaam: ');

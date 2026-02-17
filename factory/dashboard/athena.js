@@ -30,6 +30,7 @@ import {
     generateCompleteSiteType,
     getExistingSiteTypes
 } from './sitetype-api.js';
+import { generateWithAI } from '../5-engine/ai-engine.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -77,6 +78,66 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(root));
+
+// --- STRATEGY CHAT API ---
+app.post('/api/onboard/chat', async (req, res) => {
+    const { history, companyName } = req.body;
+    
+    const systemPrompt = `
+        Je bent de Digital Strategist van Athena CMS. Jouw doel is om een nieuwe klant (${companyName || 'onbekend'}) te helpen hun online strategie te bepalen.
+        Focus op:
+        1. Wie is de doelgroep?
+        2. Wat zijn de USP's?
+        3. Welke actie moet de bezoeker ondernemen?
+        4. Welke data-tabellen zijn essentieel voor hun business?
+
+        Stel korte, krachtige vragen. Wees professioneel maar toegankelijk.
+        Antwoord in het Nederlands. Gebruik NOOIT markdown-titels (geen # of ##), alleen tekst en bullets.
+    `;
+
+    const fullPrompt = `${systemPrompt}\n\nINTERVIEW HISTORY:\n${history ? history.map(h => `${h.role}: ${h.content}`).join('\n') : ''}\n\nStrategist:`;
+
+    try {
+        const response = await generateWithAI(fullPrompt, { 
+            isJson: false,
+            modelStack: "gemini-3-flash-preview"
+        });
+        res.json({ response: response || "Excuses, ik kon geen antwoord genereren. Probeer het nog eens." });
+    } catch (e) {
+        console.error("Chat Error:", e.message);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/onboard/finalize', async (req, res) => {
+    const { companyName, history } = req.body;
+    const safeName = companyName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const clientDir = path.join(root, 'input', safeName);
+    
+    const prompt = `
+        Vat het volgende interview samen voor een technisch dossier.
+        INTERVIEW:
+        ${history.map(h => `${h.role}: ${h.content}`).join('\n')}
+
+        Genereer een JSON object met:
+        - "tagline": Korte slogan
+        - "business_vertical": Branche type
+        - "target_audience": Beschrijving doelgroep
+        - "required_tables": Array van tabelnamen die nodig zijn
+        - "design_preferences": Sfeerbeschrijving (Modern, Classic, etc.)
+        - "summary": Een korte samenvatting voor de site-generator.
+    `;
+
+    try {
+        const report = await generateWithAI(prompt, { isJson: true });
+        if (!fs.existsSync(clientDir)) fs.mkdirSync(clientDir, { recursive: true });
+        
+        fs.writeFileSync(path.join(clientDir, 'discovery.json'), JSON.stringify(report, null, 2));
+        res.json({ success: true, report });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
 
 // --- SYSTEM API ---
 app.get('/api/system/config', (req, res) => res.json(systemCtrl.getConfig()));

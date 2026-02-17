@@ -748,6 +748,194 @@ async function confirmDeleteRepo(fullName) {
     }
 }
 
+// --- CLIENT ONBOARDING & CHAT ---
+let onboardChatHistory = [];
+
+function openOnboardingModal() {
+    // Reset inputs
+    document.getElementById('onboard-company-name').value = '';
+    document.getElementById('onboard-website-url').value = '';
+    document.getElementById('onboard-client-email').value = '';
+    document.getElementById('onboarding-log').classList.add('hidden');
+    
+    // Reset Chat
+    onboardChatHistory = [];
+    document.getElementById('onboard-chat-history').innerHTML = `
+        <div class="chat-msg ai">
+            <p>Hallo! Ik ben je <strong>Digital Strategist</strong>. Laten we samen de business-doelen van je nieuwe klant in kaart brengen. Wat voor soort bedrijf is het?</p>
+        </div>
+    `;
+
+    openOnboardTab(null, 'onboard-tech');
+    openModal('onboarding-modal');
+}
+
+function openOnboardTab(evt, tabName) {
+    const modal = document.getElementById('onboarding-modal');
+    modal.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+    modal.querySelectorAll('.tab-link').forEach(b => b.classList.remove('active'));
+
+    document.getElementById(tabName).style.display = 'block';
+    if (evt) evt.currentTarget.classList.add('active');
+    else modal.querySelector(`.tab-link[onclick*='${tabName}']`).classList.add('active');
+}
+
+async function sendOnboardChatMessage() {
+    const input = document.getElementById('onboard-chat-input');
+    const history = document.getElementById('onboard-chat-history');
+    const message = input.value.trim();
+    if (!message) return;
+
+    // Add user message to UI
+    const userDiv = document.createElement('div');
+    userDiv.className = 'chat-msg user';
+    userDiv.innerHTML = `<p>${message}</p>`;
+    history.appendChild(userDiv);
+    input.value = '';
+    input.style.height = 'auto'; // Reset height
+    history.scrollTop = history.scrollHeight;
+
+    onboardChatHistory.push({ role: 'user', content: message });
+
+    // Add AI loading msg
+    const aiDiv = document.createElement('div');
+    aiDiv.className = 'chat-msg ai';
+    aiDiv.innerHTML = `<p><i class="fa-solid fa-circle-notch fa-spin"></i> Bezig met nadenken...</p>`;
+    history.appendChild(aiDiv);
+
+    try {
+        const res = await fetch(`${API}/onboard/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                history: onboardChatHistory,
+                companyName: document.getElementById('onboard-company-name').value
+            })
+        });
+        const data = await res.json();
+        
+        if (data.response) {
+            aiDiv.innerHTML = `<p>${data.response}</p>`;
+            onboardChatHistory.push({ role: 'assistant', content: data.response });
+        } else {
+            aiDiv.innerHTML = `<p class="error">AI Fout: ${data.error || 'Onbekende fout'}</p>`;
+        }
+        history.scrollTop = history.scrollHeight;
+    } catch (e) {
+        aiDiv.innerHTML = `<p class="error">Netwerkfout: kon niet verbinden met de Strategist.</p>`;
+    }
+}
+
+function autoGrowChatInput(element) {
+    element.style.height = 'auto';
+    element.style.height = (element.scrollHeight) + 'px';
+}
+
+function handleOnboardChatKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendOnboardChatMessage();
+    }
+}
+
+async function finalizeInterview() {
+    const companyName = document.getElementById('onboard-company-name').value;
+    if (!companyName) return alert("Vul eerst de bedrijfsnaam in op de eerste tab.");
+
+    if (!confirm("Wil je dit interview afronden en de bevindingen opslaan in de data bron map?")) return;
+
+    try {
+        const res = await fetch(`${API}/onboard/finalize`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                companyName,
+                history: onboardChatHistory
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert("Strategisch dossier opgeslagen! Je kunt nu een SiteType genereren op basis van dit dossier.");
+            loadProjects(); // Refresh Data Hub
+        }
+    } catch (e) { alert("Fout bij opslaan dossier."); }
+}
+
+async function loadDiscoveryIntoWizard() {
+    const projects = await fetchJSON('/projects') || [];
+    
+    if (projects.length === 0) return alert("Geen data bronnen gevonden.");
+
+    const choice = prompt("Voor welke data bron wil je het discovery rapport laden?\n\nBeschikbaar: " + projects.join(", "));
+    if (!choice || !projects.includes(choice)) return;
+
+    try {
+        // We zoeken specifiek naar discovery.json
+        const discoveryFile = await fetch(`${API}/projects/${choice}/files`);
+        const files = await discoveryFile.json();
+        
+        if (!files.includes('discovery.json')) {
+            return alert("Geen discovery.json gevonden voor deze bron. Voer eerst de Strategie Chat uit.");
+        }
+
+        // Haal de ruwe content van discovery.json op
+        const contentRes = await fetch(`${API}/projects/${choice}/content`);
+        const contentData = await contentRes.json();
+        
+        // De API geeft alle content terug met headers, we moeten discovery.json eruit vissen
+        const match = contentData.content.match(/--- FILE: discovery.json ---([\s\S]*?)--- FILE:/) || 
+                      contentData.content.match(/--- FILE: discovery.json ---([\s\S]*?)$/);
+        
+        if (match) {
+            const json = JSON.parse(match[1].trim());
+            document.getElementById('sitetype-business').value = `
+SAMENVATTING DISCOVERY:
+${json.summary}
+
+DOELGROEP:
+${json.target_audience}
+
+GEWENSTE TABELLEN:
+${json.required_tables.join(', ')}
+
+SFEER:
+${json.design_preferences}
+            `.trim();
+            alert("Dossier geladen!");
+        }
+    } catch (e) {
+        alert("Fout bij laden dossier: " + e.message);
+    }
+}
+
+async function runOnboarding() {
+    const companyName = document.getElementById('onboard-company-name').value;
+    let websiteUrl = document.getElementById('onboard-website-url').value || 'none';
+    let clientEmail = document.getElementById('onboard-client-email').value || 'none';
+
+    if (!companyName) return alert("Bedrijfsnaam is verplicht.");
+
+    const log = document.getElementById('onboarding-log');
+    log.classList.remove('hidden');
+    log.innerText = "⏳ Bezig met technische provisioning...";
+
+    try {
+        const res = await fetch(`${API}/onboard`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ companyName, websiteUrl, clientEmail })
+        });
+        const data = await res.json();
+        log.innerText = data.success ? "✅ Technische setup voltooid!" : "❌ Fout: " + data.error;
+        if (data.success) {
+            setTimeout(() => {
+                openOnboardTab(null, 'onboard-strategy');
+                loadProjects();
+            }, 1500);
+        }
+    } catch (e) { log.innerText = "❌ Netwerkfout."; }
+}
+
 // --- DATA HUB PIPELINE HELPERS ---
 let currentBlueprintType = null;
 let currentBlueprintTrack = null;
