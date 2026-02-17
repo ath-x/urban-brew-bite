@@ -1,5 +1,15 @@
 [
   {
+    "id": "athena-promo",
+    "name": "athena-promo",
+    "siteType": "professional-service-provider",
+    "generatedAt": "2026-02-14T18:37:11.711Z",
+    "governance_mode": "dev-mode",
+    "repoUrl": "https://github.com/athena-cms-factory/athena-promo",
+    "liveUrl": "https://athena-cms-factory.github.io/athena-promo",
+    "port": 5812
+  },
+  {
     "id": "test-upgrade-site",
     "name": "test-upgrade-site",
     "siteType": "basic-dock-type",

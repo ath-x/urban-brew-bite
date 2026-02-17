@@ -5,16 +5,17 @@
 
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
+import { execSync, spawn } from 'child_process';
 import { createProject, validateProjectName } from '../factory.js';
 import { deployProject } from '../deploy-wizard.js';
 import { AthenaDataManager } from '../lib/DataManager.js';
 import { AthenaInterpreter } from '../lib/Interpreter.js';
 
 export class SiteController {
-    constructor(configManager, executionService) {
+    constructor(configManager, executionService, processManager) {
         this.configManager = configManager;
         this.execService = executionService;
+        this.pm = processManager;
         this.root = configManager.get('paths.root');
         this.sitesDir = configManager.get('paths.sites');
         this.dataManager = new AthenaDataManager(configManager.get('paths.factory'));
@@ -216,7 +217,23 @@ export class SiteController {
 
         const previewPort = this.getSitePort(id, siteDir);
         
-        // Return URL if already running
+        // Check if already running via ProcessManager
+        const active = this.pm.listActive();
+        if (active[previewPort] && active[previewPort].id === id) {
+            return { success: true, url: `http://localhost:${previewPort}/${id}/` };
+        }
+
+        // Auto-install if node_modules is missing
+        if (!fs.existsSync(path.join(siteDir, 'node_modules'))) {
+            console.log(`📦 node_modules ontbreken in ${id}, installeren...`);
+            this.execService.runSync('pnpm install', { cwd: siteDir, label: `Install for ${id}` });
+        }
+
+        // Start preview process
+        console.log(`🚀 Starting preview for ${id} on port ${previewPort}...`);
+        this.pm.startProcess(id, 'preview', previewPort, 'pnpm', ['dev', '--port', previewPort.toString(), '--host'], { cwd: siteDir });
+
+        // Give it a small headstart
         return { success: true, url: `http://localhost:${previewPort}/${id}/` };
     }
 

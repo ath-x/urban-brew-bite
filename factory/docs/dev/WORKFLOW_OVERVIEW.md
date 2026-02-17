@@ -50,7 +50,7 @@ This document describes the complete cycle of website creation within the Athena
 
 ### 1. Analysis Phase (AI Blueprinting)
 In this phase, the AI determines the best data structure for the business.
-- **Input:** `raw-input.txt` (unstructured text).
+- **Input:** `raw-input.txt` (unstructured text) in the **Data Source** folder.
 - **Process:** The `generate-sitetype-from-input.js` utility calls Gemini to define tables and columns.
 - **Output:** A new sitetype in `3-sitetypes/[track]/[name]`.
 
@@ -58,18 +58,22 @@ In this phase, the AI determines the best data structure for the business.
 The AI converts raw text into factual data.
 - **Modern Flow (v6+):** The parser now generates **JSON** files directly as the primary source for the website.
 - **TSV Support:** TSV files are still generated as a secondary output for easy import into Google Sheets.
-- **Location:** `input/[project]/json-data/`.
+- **Location:** `input/[data-bron]/json-data/`.
 
 ### 3. Generation Phase (Factory Engine)
 The `factory.js` engine builds the physical website.
 - **Smart Layout Generator:** Dynamically builds `Section.jsx` based on the blueprint.
-- **Sync:** JSON data is copied directly from the input folder to the new site's `src/data/`.
-- **Output:** A functional React 19 / Tailwind v4 site in `sites/[projectname]`.
+- **Sync:** JSON data is copied directly from the **Data Source** folder to the new site's `src/data/`.
+- **Output:** A functional React 19 / Tailwind v4 site in `sites/[sitename]`.
 
-### 4. Refresh & Iteration Phase (Maintenance)
-This is the "living" phase of the project.
-- **Schema Refresh:** You can adjust the blueprint at any time (e.g., add a 'price' column).
-- **In-place Updates:** By re-running the parser and calling the Smart Layout Generator, the site is updated without requiring manual code changes.
+### 4. Refresh & Iteration Phase (Data Gateway)
+This is the "living" phase of the project, managed via the **Data Gateway**.
+- **Source of Truth:** The system supports three data sources: Google Sheets (Cloud), Local JSON (Visual edits), and TSV (Legacy/Agent).
+- **Data Gateway Hub:** 
+    - **Pull from Cloud:** Syncs the latest changes from the Google Sheet to the local site.
+    - **Push to Cloud:** Pushes local visual edits (from Athena Dock) to the Google Sheet.
+    - **Pull from local input folder:** Re-injects data from local TSV files into the site's JSON.
+- **Schema Refresh:** You can adjust the blueprint at any time (e.g., add a 'price' column) and re-sync via the Gateway.
 
 ## 🚀 Key Advantages
 1.  **Gemini 3.0 Ready:** Robust handling of "thought signatures".

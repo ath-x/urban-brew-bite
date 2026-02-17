@@ -132,7 +132,7 @@ function showSection(id, btn) {
     // Update de pagina titel
     let title = id.charAt(0).toUpperCase() + id.slice(1);
     if (id === 'sites') title = "Sites";
-    if (id === 'projects') title = "Data Bronnen";
+    if (id === 'projects') title = "Data Hub";
     document.getElementById('page-title').innerText = title;
 
     // Toon/verberg header actie knop
@@ -750,81 +750,123 @@ async function confirmDeleteRepo(fullName) {
 
 async function loadProjects() {
     const projects = await fetchJSON('/projects') || [];
+    const sites = await fetchJSON('/sites') || [];
     const list = document.getElementById('projects-list');
     list.innerHTML = '';
-
-    document.getElementById('count-datasources').innerText = projects.length;
 
     if (projects.length === 0) {
         list.innerHTML = '<div style="grid-column: 1/-1; padding: 50px; text-align: center; color: var(--text-muted); opacity: 0.5;">Geen projecten gevonden in ../input/</div>';
         return;
     }
 
-    projects.forEach(project => {
+    for (const project of projects) {
         const displayName = project.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const site = sites.find(s => s.name === project || s.name === `${project}-site`);
+        
+        // Data status checks
+        const files = await fetchJSON(`/projects/${project}/files`) || [];
+        const hasInput = files.length > 0;
+        const hasTsv = files.some(f => f.toLowerCase().includes('.tsv')) || false; // This check might need more backend info, but let's assume for now
+        const hasSite = !!site;
+        const hasSheet = site && site.sheetUrl;
 
-        const card = document.createElement('div');
-        card.className = 'site-card status-local';
-        card.innerHTML = `
-            <div class="site-card-content">
-                <div class="card-header" style="justify-content: space-between;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <i class="fa-solid fa-database" style="font-size:1.2rem; color:var(--warning);"></i>
-                        <h4 style="font-weight:700; letter-spacing:0.5px; font-size:1.05rem;">${displayName}</h4>
+        const row = document.createElement('div');
+        row.className = 'pipeline-row';
+        row.innerHTML = `
+            <div class="project-meta">
+                <h4>${displayName}</h4>
+                <p class="small muted">input/${project}/</p>
+                <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 5px;">
+                    <button onclick="useProject('${project}')" class="mini-action-btn" style="background: var(--accent); color: #000; font-weight: bold;" title="Start de generatie-pipeline. Het neemt de huidige data bron als fundament en stuurt je door naar het formulier om een nieuwe website (React/Tailwind) te bouwen.">
+                        <i class="fa-solid fa-plus"></i> CREATE SITE from input/${project}
+                    </button>
+                    <button onclick="deleteProjectSource('${project}')" class="mini-action-btn" style="color: var(--error); border-color: var(--error);" title="Verwijdert de volledige map in input/${project}.">
+                        <i class="fa-solid fa-trash"></i> DELETE input/${project}
+                    </button>
+                </div>
+            </div>
+
+            <div class="pipeline-steps">
+                <!-- STEP 1: RAW -->
+                <div class="step-box-hub ${hasInput ? 'active' : ''}">
+                    <h5><i class="fa-solid fa-file-invoice"></i> 1. Ingestie</h5>
+                    <div class="step-content-info">
+                        ${hasInput ? `<span class="success">${files.length} bestanden</span>` : '<span class="muted">Leeg</span>'}
                     </div>
-                    <span class="badge badge-local" style="width:auto; padding:3px 8px;">
-                        <i class="fa-solid fa-folder-open"></i> BRON
-                    </span>
-                </div>
-
-                <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
-                    <p style="font-size:0.75rem; color:var(--text-muted); margin:0; font-weight:500;">
-                        <i class="fa-solid fa-folder" style="width:14px; opacity:0.6;"></i> <code style="font-size:0.7rem; background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px;">input/${project}/</code>
-                    </p>
-                    <p class="project-file-info" data-project="${project}" style="font-size:0.75rem; color:var(--text-muted); margin:0; font-weight:500;">
-                        <i class="fa-solid fa-file" style="width:14px; opacity:0.6;"></i> Bestanden laden...
-                    </p>
-                </div>
-
-                <div style="display:flex; gap:8px; margin-top:auto; padding-top:12px; border-top:1px solid var(--border); flex-wrap:wrap;">
-                    <button onclick="useProject('${project}')" class="primary-btn" style="flex:1; min-width:70px; padding:8px; font-size:0.7rem; font-weight:700; display:flex; align-items:center; justify-content:center; gap:5px;">
-                        <i class="fa-solid fa-magic"></i> SITE
-                    </button>
-                    <button onclick="startSiteTypeFromProject('${project}')" class="primary-btn" style="flex:1; min-width:70px; padding:8px; font-size:0.7rem; font-weight:700; background:#00bcd4; display:flex; align-items:center; justify-content:center; gap:5px;" title="Nieuw SiteType Maken van Data">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> SITETYPE
-                    </button>
-                    <div style="display:flex; gap:6px;">
-                        <button onclick="openParserModal('${project}')" class="secondary-btn" style="width:38px; border-color:var(--purple); color:var(--purple);" title="AI Content Parser">
-                            <i class="fa-solid fa-robot"></i>
+                    <div class="step-actions">
+                        <button onclick="openImportModal('${project}')" class="mini-action-btn" title="Uploaden / Plakken">
+                            <i class="fa-solid fa-upload"></i>
                         </button>
-                        <button onclick="openScraperModal('${project}')" class="secondary-btn" style="width:38px; border-color:var(--warning); color:var(--warning);" title="Website Scraper">
+                        <button onclick="openScraperModal('${project}')" class="mini-action-btn" title="Scraper">
                             <i class="fa-solid fa-spider"></i>
                         </button>
-                        <button onclick="openImportModal('${project}')" class="secondary-btn" style="width:38px; border-color:var(--accent); color:var(--accent);" title="Data Importeren">
-                            <i class="fa-solid fa-file-import"></i>
+                    </div>
+                </div>
+
+                <div class="bridge-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+
+                <!-- STEP 2: STRUCTUUR -->
+                <div class="step-box-hub">
+                    <h5><i class="fa-solid fa-robot"></i> 2. Structuur</h5>
+                    <div class="step-content-info">
+                        <span class="muted">TSV Output</span>
+                    </div>
+                    <div class="step-actions">
+                        <button onclick="openParserModal('${project}')" class="mini-action-btn" style="background: var(--purple); color: #fff;">
+                            <i class="fa-solid fa-wand-sparkles"></i> EXTRACT
                         </button>
-                        <button onclick="deleteProjectSource('${project}')" class="secondary-btn" style="width:38px; color:var(--error); border-color:var(--error);" title="Project Wissen">
-                            <i class="fa-solid fa-trash"></i>
+                    </div>
+                </div>
+
+                <div class="bridge-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+
+                <!-- STEP 3: SITE CORE -->
+                <div class="step-box-hub ${hasSite ? 'active' : ''}">
+                    <h5><i class="fa-solid fa-microchip"></i> 3. Site Core</h5>
+                    <div class="step-content-info">
+                        ${hasSite ? `<span class="accent">Site Gekoppeld</span>` : '<span class="muted">Geen Site</span>'}
+                    </div>
+                    <div class="step-actions">
+                        <button onclick="injectTsvGatewayDirect('${project}')" class="mini-action-btn" ${!hasSite ? 'disabled' : ''} title="Pull from Input Folder">
+                            <i class="fa-solid fa-bolt"></i> PULL
                         </button>
+                    </div>
+                </div>
+
+                <div class="bridge-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+
+                <!-- STEP 4: CLOUD -->
+                <div class="step-box-hub ${hasSheet ? 'active' : ''}">
+                    <h5><i class="fa-solid fa-cloud"></i> 4. Cloud</h5>
+                    <div class="step-content-info">
+                        ${hasSheet ? `<span class="success">Sheet Live</span>` : '<span class="muted">Geen Sheet</span>'}
+                    </div>
+                    <div class="step-actions">
+                        <button onclick="openSheetModal('${project}')" class="mini-action-btn" title="Sheet Beheer">
+                            <i class="fa-solid fa-cog"></i>
+                        </button>
+                        ${hasSheet ? `
+                        <button onclick="pullFromSheetGatewayDirect('${project}')" class="mini-action-btn success-btn" title="Pull from Cloud">
+                            <i class="fa-solid fa-cloud-arrow-down"></i>
+                        </button>
+                        ` : ''}
                     </div>
                 </div>
             </div>
         `;
-        list.appendChild(card);
-    });
+        list.appendChild(row);
+    }
+}
 
-    // Async: laad bestandsinformatie per project
-    document.querySelectorAll('.project-file-info').forEach(async (el) => {
-        const project = el.dataset.project;
-        const files = await fetchJSON(`/projects/${project}/files`) || [];
-        if (files.length === 0) {
-            el.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="width:14px; color:var(--error);"></i> <span style="color:var(--error);">Geen bestanden</span>';
-        } else {
-            const types = files.map(f => f.split('.').pop().toUpperCase());
-            const uniqueTypes = [...new Set(types)].slice(0, 4).join(', ');
-            el.innerHTML = `<i class="fa-solid fa-file" style="width:14px; opacity:0.6;"></i> ${files.length} bestand${files.length !== 1 ? 'en' : ''} <span style="opacity:0.6;">(${uniqueTypes})</span>`;
-        }
-    });
+// Direct gateway helpers for Data Hub
+async function injectTsvGatewayDirect(projectName) {
+    currentGatewayProject = projectName;
+    await injectTsvGateway();
+}
+
+async function pullFromSheetGatewayDirect(projectName) {
+    currentGatewayProject = projectName;
+    await pullFromSheetGateway();
 }
 
 async function openParserModal(projectName) {
@@ -1102,7 +1144,7 @@ async function submitUrlData() {
 }
 
 async function deleteProjectSource(projectName) {
-    if (!confirm(`⚠️ WEET JE HET ZEKER?\n\nJe staat op het punt de BRON DATA van '${projectName}' (../input/) definitief te verwijderen.`)) return;
+    if (!confirm(`⚠️ DEFINITIEF VERWIJDEREN?\n\nJe staat op het punt de volledige DATA BRON MAP van '${projectName}' (../input/${projectName}) definitief te verwijderen.\n\nDit wist ALLE bronbestanden, scrapes en teksten die je voor deze bron hebt verzameld. Deze actie kan niet ongedaan worden gemaakt.`)) return;
 
     try {
         const res = await fetch(`${API}/projects/${projectName}/delete`, {
@@ -1281,6 +1323,67 @@ function closeModal(id) {
     if (modal) modal.classList.add('hidden');
 }
 
+// --- DATA GATEWAY ---
+let currentGatewayProject = null;
+
+function openDataGateway(name, event) {
+    if (event) { event.preventDefault(); event.stopPropagation(); }
+    currentGatewayProject = name;
+    document.getElementById('gateway-project-name').innerText = name;
+    document.getElementById('gateway-log').classList.add('hidden');
+    document.getElementById('gateway-log').innerText = '';
+    openModal('data-gateway-modal');
+}
+
+async function pullFromSheetGateway() {
+    const log = document.getElementById('gateway-log');
+    log.classList.remove('hidden');
+    log.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Bezig met ophalen uit de cloud...';
+    
+    try {
+        const res = await fetch(`${API}/sites/${currentGatewayProject}/pull-from-sheet`, { method: 'POST' });
+        const data = await res.json();
+        log.innerHTML = data.success ? `<span class="success">✅ ${data.message}</span>` : `<span class="error">❌ ${data.error}</span>`;
+    } catch (e) {
+        log.innerHTML = `<span class="error">❌ Netwerkfout: ${e.message}</span>`;
+    }
+}
+
+async function pushToSheetGateway() {
+    const log = document.getElementById('gateway-log');
+    log.classList.remove('hidden');
+    log.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Bezig met pushen naar de cloud...';
+    
+    try {
+        const res = await fetch(`${API}/sites/${currentGatewayProject}/sync-to-sheet`, { method: 'POST' });
+        const data = await res.json();
+        log.innerHTML = data.success ? `<span class="success">✅ ${data.message}</span>` : `<span class="error">❌ ${data.error}</span>`;
+    } catch (e) {
+        log.innerHTML = `<span class="error">❌ Netwerkfout: ${e.message}</span>`;
+    }
+}
+
+async function injectTsvGateway() {
+    const log = document.getElementById('gateway-log');
+    log.classList.remove('hidden');
+    log.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Bezig met re-scan van lokale TSV bestanden...';
+    
+    try {
+        const res = await fetch(`${API}/run-script`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                script: 'sync-tsv-to-json.js',
+                args: [currentGatewayProject]
+            })
+        });
+        const data = await res.json();
+        log.innerHTML = data.success ? `<span class="success">✅ Data succesvol geïnjecteerd vanuit TSV.</span>` : `<span class="error">❌ ${data.error}</span>`;
+    } catch (e) {
+        log.innerHTML = `<span class="error">❌ Netwerkfout: ${e.message}</span>`;
+    }
+}
+
 // --- VIEW: sites ---
 async function loadSites() {
     const projects = await fetchJSON('/projects') || [];
@@ -1375,11 +1478,11 @@ async function loadSites() {
                     
                     <!-- Row 2: Content (Data & AI) -->
                     <div class="action-row">
-                        <button onclick="openToolModal('data-injector'); setTimeout(() => { document.getElementById('tool-project-select').value = '${name}'; }, 100);" class="action-btn sync-btn" style="color: var(--purple);">
-                            <i class="fa-solid fa-bolt"></i> <span>SYNC</span>
+                        <button onclick="openDataGateway('${name}', event)" class="action-btn sync-btn" style="color: var(--accent);" title="Data Gateway (Sync)">
+                            <i class="fa-solid fa-tower-broadcast"></i> <span>GATEWAY</span>
                         </button>
                         <button onclick="openSheetModal('${name}', event)" class="action-btn data-btn">
-                            <i class="fa-solid fa-database"></i> <span>DATA</span>
+                            <i class="fa-solid fa-database"></i> <span>SHEET</span>
                         </button>
                         <button onclick="generateBlogUI('${name}', event)" class="action-btn blog-btn" style="color: #ff9800;" title="AI Blog Genereren">
                             <i class="fa-solid fa-pen-nib"></i> <span>BLOG</span>
@@ -2280,12 +2383,12 @@ window.copyToClipboard = (text) => {
 
 async function openToolModal(tool) {
     currentTool = tool;
-    const titles = { 'data-injector': 'TSV to Sites', 'image-gen': 'AI Art Director', 'media-fetcher': '📸 Media Fetcher', 'ai-parser': '🤖 AI Content Parser' };
+    const titles = { 'data-injector': 'Pull from local input folder', 'image-gen': 'AI Art Director', 'media-fetcher': '📸 Media Fetcher', 'ai-parser': '🤖 AI Data Extractor (Parser)' };
     const descriptions = {
-        'data-injector': 'Deze tool synchroniseert de data uit je bron-bestanden (TSV of Google Sheets) naar de lokale JSON-bestanden van je site. Dit is de motor die de content van je site ververst en publiceert naar de frontend.',
-        'image-gen': 'Maakt gebruik van AI om cinematische prompts te genereren voor afbeeldingen op basis van je project-context.',
-        'media-fetcher': 'Zoekt automatisch naar relevante foto\'s op rechtenvrije platforms zoals Pexels en Unsplash.',
-        'ai-parser': 'Gebruikt AI om gescrapete of geplakte tekst om te zetten naar gestructureerde data volgens je SiteType blueprint.'
+        'data-injector': 'Importeert lokale TSV-bestanden uit de "input/[project]/tsv-data/" map en injecteert deze in de JSON-architectuur van de site.',
+        'image-gen': 'Genereert cinematische Midjourney/DALL-E prompts op basis van de site-context in de input folder.',
+        'media-fetcher': 'Scavengt rechtenvrije assets van Pexels/Unsplash op basis van metadata-keywords.',
+        'ai-parser': 'Verwerkt ongestructureerde input (scrapes/text) naar gestructureerde TSV-bestanden in de "tsv-data/" map, gemapt op de geselecteerde SiteType blueprint.'
     };
 
     document.getElementById('tool-modal-title').innerText = titles[tool] || 'Tool';
@@ -2362,19 +2465,23 @@ const TOOL_INFO = {
     },
     'image-gen': {
         title: 'AI Image Prompt Generator',
-        body: 'Maakt gebruik van AI om cinematische prompts te genereren voor afbeeldingen op basis van je project-context. Deze prompts kunnen direct gebruikt worden in tools als Midjourney of DALL-E.'
+        body: 'Maakt gebruik van AI om cinematische prompts te genereren voor afbeeldingen op basis van de context van de data bron. Deze prompts kunnen direct gebruikt worden in tools als Midjourney of DALL-E.'
     },
     'media-fetcher': {
         title: 'Media Fetcher',
-        body: 'Zoekt automatisch naar relevante foto\'s op rechtenvrije platforms zoals Pexels en Unsplash. Ideaal om snel een nieuwe site te vullen met kwalitatieve beelden.'
+        body: 'Zoekt automatisch naar relevante foto\'s op rechtenvrije platforms zoals Pexels en Unsplash. Ideaal om snel een nieuwe site te vullen met kwalitatieve beelden op basis van data bron keywords.'
     },
     'media-visualizer': {
         title: 'Media Visualizer',
         body: 'Een visuele web-tool om afbeeldingen naar de juiste "slots" op je website te slepen. Je kunt afbeeldingen uploaden of koppelen aan de datastructuur van je site. Script: media-visualizer.js'
     },
     'data-injector': {
-        title: 'Data Injector',
-        body: 'Synchroniseert de data uit je bron-bestanden (TSV/Sheets) naar de lokale JSON-bestanden van je site. Dit is de motor die de content van je site ververst.'
+        title: 'Pull from local input folder',
+        body: 'Importeert lokale TSV-bestanden uit de "input/" map en zet deze om naar de JSON-bestanden die je website aansturen. Gebruik dit als alternatief voor Google Sheets.'
+    },
+    'ai-parser': {
+        title: 'AI Data Extractor (Parser)',
+        body: 'Vertaalt ongestructureerde data naar tabel-schema\'s.\n\n• Bron: ../input/[project]/input/ (scrapes, txt)\n• Doel: ../input/[project]/tsv-data/ (TSV)\n\nDeze tool gebruikt Gemini AI om ruwe tekst te mappen naar de specifieke kolommen van een SiteType blueprint. De gegenereerde TSV-bestanden kunnen vervolgens via de Data Gateway naar de site of Google Sheets worden gepusht.'
     },
     'status-sync': {
         title: 'Status Refresh',

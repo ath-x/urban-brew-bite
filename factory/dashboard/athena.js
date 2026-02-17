@@ -33,7 +33,7 @@ import {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const root = path.resolve(__dirname, '..');
+const root = path.resolve(__dirname, '../..');
 
 // --- INITIALIZATION ---
 const configManager = new AthenaConfigManager(root);
@@ -43,7 +43,7 @@ const sm = new AthenaSecretManager(root);
 const execService = new ExecutionService(configManager, lm);
 
 const projectCtrl = new ProjectController(configManager, execService);
-const siteCtrl = new SiteController(configManager, execService);
+const siteCtrl = new SiteController(configManager, execService, pm);
 const doctorCtrl = new DoctorController(configManager);
 const paymentCtrl = new PaymentController(configManager);
 const marketingCtrl = new MarketingController(configManager);
@@ -149,6 +149,41 @@ app.post('/api/marketing/generate-blog', async (req, res) => res.json(await mark
 
 // --- PAYMENT API ---
 app.post('/api/payments/create-session', async (req, res) => res.json(await paymentCtrl.createStripeSession(req.body.projectName, req.body.cart, req.body.successUrl, req.body.cancelUrl)));
+
+// --- ROADMAP & TODO API ---
+app.get('/api/roadmaps', (req, res) => {
+    const roadmapPath = path.join(root, 'factory/config/roadmaps.json');
+    if (fs.existsSync(roadmapPath)) {
+        try {
+            const data = JSON.parse(fs.readFileSync(roadmapPath, 'utf8'));
+            res.json(data);
+        } catch (e) {
+            res.status(500).json({ error: "Fout bij laden roadmaps.json: " + e.message });
+        }
+    } else {
+        res.json({
+            tracks: [
+                {
+                    title: "Roadmaps niet gevonden",
+                    id: "not-found",
+                    description: `Bestand niet gevonden op: ${roadmapPath}`,
+                    difficulty: "N/A",
+                    time: "N/A",
+                    steps: []
+                }
+            ]
+        });
+    }
+});
+
+app.get('/api/todo', (req, res) => {
+    const todoPath = path.join(root, 'factory/TASKS/_TODO.md');
+    if (fs.existsSync(todoPath)) {
+        res.json({ content: fs.readFileSync(todoPath, 'utf8') });
+    } else {
+        res.json({ content: "# TODO\n\n_TODO.md niet gevonden._" });
+    }
+});
 
 app.listen(port, () => {
     console.log(`🔱 Athena Dashboard running at http://localhost:${port}`);

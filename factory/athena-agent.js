@@ -18,15 +18,16 @@ import { execSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const root = path.resolve(__dirname, '..');
+const root = path.resolve(__dirname, '..'); // Dit is factory/
+const projectRoot = path.resolve(root, '..'); // Dit is athena-x/
 
-const config = new AthenaConfigManager(root);
+const config = new AthenaConfigManager(projectRoot);
 const projectCtrl = new ProjectController(config);
 const siteCtrl = new SiteController(config);
 const marketingCtrl = new MarketingController(config);
 const doctorCtrl = new DoctorController(config);
 const interpreter = new AthenaInterpreter(config);
-const gateway = new AthenaGateway(root);
+const gateway = new AthenaGateway(projectRoot);
 
 const command = process.argv[2];
 const args = process.argv.slice(3);

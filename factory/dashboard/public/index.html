@@ -36,7 +36,7 @@
                 <div class="nav-separator"></div>
 
                 <button class="nav-btn" onclick="showSection('projects', this)">
-                    <i class="fa-solid fa-folder-open"></i> Data Bronnen
+                    <i class="fa-solid fa-hubspot"></i> Data Hub
                 </button>
                 <button class="nav-btn" onclick="showSection('sitetypes', this)">
                     <i>🧙‍♂️</i> SiteTypes
@@ -129,31 +129,32 @@
                 </div>
             </section>
 
-            <!-- SECTION: PROJECTS -->
+            <!-- SECTION: DATA HUB (Previously Projects) -->
             <section id="projects" class="view-section hidden">
-                <div class="stats-grid" style="margin-bottom: 20px;">
-                    <div class="stat-card">
-                        <h3>Data Bronnen</h3>
-                        <p id="count-datasources">0</p>
-                    </div>
-                </div>
-
                 <div class="section-header">
-                    <h3>Beschikbare Bronprojecten</h3>
+                    <h3><i class="fa-solid fa-hubspot accent"></i> Athena Data Hub</h3>
                     <div class="flex-row" style="gap: 10px;">
-                        <button onclick="openCreateDataSourceFromSiteModal()" class="primary-btn"
-                            style="background: var(--accent); padding: 8px 15px; font-size: 0.8rem;">
-                            <i class="fa-solid fa-file-export"></i> Data Bron van Site
-                        </button>
                         <button onclick="openNewProjectModal()" class="primary-btn success-btn"
                             style="padding: 8px 15px; font-size: 0.8rem;">
-                            <i class="fa-solid fa-folder-plus"></i> Nieuw Bronproject
+                            <i class="fa-solid fa-folder-plus"></i> Nieuwe Data Bron
                         </button>
                     </div>
                 </div>
-                <p class="muted" style="margin-bottom: 20px;">Bronmappen in <code>input/</code> die als basis dienen voor site-generatie.</p>
-                <div id="projects-list" class="list-grid">
-                    <p class="loading-msg">Projecten laden...</p>
+                <p class="muted mb-20">Beheer de levenscyclus van je data: van ruwe input naar gestructureerde cloud-databases.</p>
+                
+                <!-- Pipeline Legend -->
+                <div class="pipeline-legend flex-row mb-20 gap-20">
+                    <div class="legend-item"><span class="step-num">1</span> Ruwe Ingestie</div>
+                    <i class="fa-solid fa-arrow-right muted"></i>
+                    <div class="legend-item"><span class="step-num">2</span> TSV Structuur</div>
+                    <i class="fa-solid fa-arrow-right muted"></i>
+                    <div class="legend-item"><span class="step-num">3</span> Site JSON</div>
+                    <i class="fa-solid fa-arrow-right muted"></i>
+                    <div class="legend-item"><span class="step-num">4</span> Cloud (Sheets)</div>
+                </div>
+
+                <div id="projects-list" class="pipeline-grid">
+                    <p class="loading-msg">Data Hub laden...</p>
                 </div>
             </section>
 
@@ -285,7 +286,7 @@
                     <form id="create-form">
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Data Bron (Inhoud)</label>
+                                <label>Data Bron (Fundament)</label>
                                 <select name="sourceProject" id="project-select" required></select>
                             </div>
                             <div class="form-group">
@@ -491,18 +492,18 @@
                             <i class="fa-solid fa-robot purple"></i>
                             <span class="badge purple-badge">AI</span>
                         </div>
-                        <h4>AI Content Parser</h4>
-                        <p>Zet gescrapete tekst om naar TSV data.</p>
+                        <h4>AI Data Extractor (Parser)</h4>
+                        <p>Mapt ruwe tekst naar TSV schema's.</p>
                     </div>
 
                     <div class="tool-card" onclick="openToolModal('data-injector')">
                         <div class="info-btn" onclick="showToolInfo('data-injector', event)">?</div>
                         <div class="card-header">
-                            <i class="fa-solid fa-bolt purple"></i>
+                            <i class="fa-solid fa-file-import purple"></i>
                             <span class="badge purple-badge">Sync</span>
                         </div>
-                        <h4>Data Injector</h4>
-                        <p>TSV naar lokale JSON data.</p>
+                        <h4>Pull from local input folder</h4>
+                        <p>van lokale TSV bestanden naar lokale JSON bestanden.</p>
                     </div>
 
                     <div class="tool-card" onclick="openMaintenance()">
@@ -688,7 +689,7 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('create-datasource-from-site-modal')">&times;</span>
             <h3>Data Bron van Site</h3>
-            <p class="muted">Maak een nieuwe herbruikbare databron (project) van een bestaande site.</p>
+            <p class="muted">Maak een nieuwe herbruikbare databron van een bestaande site.</p>
 
             <div class="form-group mt-20">
                 <label>Selecteer Bron Site</label>
@@ -696,7 +697,7 @@
             </div>
 
             <div class="form-group">
-                <label>Nieuwe Project Naam</label>
+                <label>Nieuwe Data Bron Naam</label>
                 <input type="text" id="target-project-name" placeholder="bv. mijn-nieuwe-data-bron">
             </div>
 
@@ -1108,7 +1109,7 @@
                 style="font-size: 0.8rem; margin-top: 10px; line-height: 1.4; color: var(--text-muted);"></p>
 
             <div class="form-group mt-20">
-                <label>Selecteer Project</label>
+                <label>Selecteer Data Bron</label>
                 <select id="tool-project-select" onchange="updateToolFileList()"></select>
             </div>
 
@@ -1199,13 +1200,13 @@
     <div id="new-project-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('new-project-modal')">&times;</span>
-            <h3>Nieuw Bronproject</h3>
-            <p class="muted">Maak een nieuwe map aan in <code>1-inputdata/</code>.</p>
+            <h3>Nieuwe Data Bron</h3>
+            <p class="muted">Maak een nieuwe bronmap aan in <code>input/</code>.</p>
             <div class="form-group mt-20">
-                <label>Project Naam</label>
+                <label>Naam van Data Bron</label>
                 <input type="text" id="new-project-name-input" placeholder="bv. mijn-nieuwe-klant">
             </div>
-            <button onclick="createNewProject()" class="primary-btn full-width">Project Aanmaken</button>
+            <button onclick="createNewProject()" class="primary-btn full-width">Data Bron Aanmaken</button>
         </div>
     </div>
 
@@ -1214,7 +1215,7 @@
         <div class="modal-content large">
             <span class="close-btn" onclick="closeModal('import-modal')">&times;</span>
             <h3>Data Toevoegen</h3>
-            <p style="margin-bottom: 15px;">Project: <strong id="import-project-name" class="accent"></strong></p>
+            <p style="margin-bottom: 15px;">Data Bron: <strong id="import-project-name" class="accent"></strong></p>
 
             <div class="tabs">
                 <button class="tab-link active" onclick="openImportTab(event, 'tab-files')">Bestanden</button>
@@ -1270,7 +1271,7 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('scraper-modal')">&times;</span>
             <h3>Website Scraper</h3>
-            <p>Project: <strong id="scraper-project-name" class="accent"></strong></p>
+            <p>Data Bron: <strong id="scraper-project-name" class="accent"></strong></p>
             <p class="muted">Haal tekst op van de URL's in je bronbestand.</p>
 
             <div class="form-group mt-20">
@@ -1437,6 +1438,50 @@
             </div>
 
             <div id="onboarding-log" class="log-output hidden mt-20"></div>
+        </div>
+    </div>
+
+    <!-- Data Gateway Modal -->
+    <div id="data-gateway-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('data-gateway-modal')">&times;</span>
+            <h3>🌐 Data Gateway</h3>
+            <p style="margin-bottom: 15px;">Project: <strong id="gateway-project-name" class="accent"></strong></p>
+
+            <div class="info-box mb-20">
+                <p class="small">Kies hoe je de data van dit project wilt synchroniseren. Dit bepaalt welke bron als "waarheid" wordt gebruikt.</p>
+            </div>
+
+            <div class="gateway-options" style="display: flex; flex-direction: column; gap: 15px;">
+                <!-- OPTIE 1: PULL FROM CLOUD -->
+                <button onclick="pullFromSheetGateway()" class="tool-btn" style="text-align: left; padding: 15px; background: var(--bg-darker); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; color: #fff; display: flex; align-items: center; gap: 15px;">
+                    <i class="fa-solid fa-cloud-arrow-down accent" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <strong style="display: block;">Pull from Cloud</strong>
+                        <small style="color: var(--text-muted);">Haal de nieuwste data uit de Google Sheet naar je computer.</small>
+                    </div>
+                </button>
+
+                <!-- OPTIE 2: PUSH TO CLOUD -->
+                <button onclick="pushToSheetGateway()" class="tool-btn" style="text-align: left; padding: 15px; background: var(--bg-darker); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; color: #fff; display: flex; align-items: center; gap: 15px;">
+                    <i class="fa-solid fa-cloud-arrow-up purple" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <strong style="display: block;">Push to Cloud</strong>
+                        <small style="color: var(--text-muted);">Stuur je lokale (visuele) wijzigingen naar de Google Sheet.</small>
+                    </div>
+                </button>
+
+                <!-- OPTIE 3: LOCAL TSV INJECT -->
+                <button onclick="injectTsvGateway()" class="tool-btn" style="text-align: left; padding: 15px; background: var(--bg-darker); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; color: #fff; display: flex; align-items: center; gap: 15px;">
+                    <i class="fa-solid fa-file-import warning" style="font-size: 1.5rem; color: var(--warning);"></i>
+                    <div>
+                        <strong style="display: block;">Pull from local input folder</strong>
+                        <small style="color: var(--text-muted);">Importeer lokale TSV bestanden uit de input map naar de site.</small>
+                    </div>
+                </button>
+            </div>
+
+            <div id="gateway-log" class="log-output hidden mt-20"></div>
         </div>
     </div>
 

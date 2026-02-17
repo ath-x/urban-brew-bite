@@ -44,14 +44,14 @@ To prevent the Athena Editor from mistaking a media slot for a text field ("Edit
 To ensure generated sites are not missing images or data, the engine uses `AssetScavenger` (via `ProcessManager`):
 
 ### 1. Guaranteed Data Handover
-During site creation, the `input/[project]/json-data/` directory is copied directly to the new site's `src/data/` with high priority. This occurs via a hard `fs.cpSync` before any synchronization.
+During site creation, the `input/[data-bron]/json-data/` directory is copied directly to the new site's `src/data/` with high priority. This occurs via a hard `fs.cpSync` before any synchronization.
 
 ### 2. Automatic Asset Scavenging
 After data handover, the engine runs the `AssetScavenger` routine:
 - **Scan**: All JSON files in `src/data/` are scanned for strings ending in media extensions (`.jpg`, `.png`, `.mp4`, etc.).
 - **Search**: The engine recursively searches for these files in:
-    1. `input/[project]/images/`
-    2. `input/[project]/input/`
+    1. `input/[data-bron]/images/`
+    2. `input/[data-bron]/input/`
     3. `inputsites/` (for cloned prototypes)
 - **Recovery**: Found files are automatically copied to the `public/images/` directory of the new site.
 

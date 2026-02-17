@@ -1,6 +1,32 @@
 {
   "tracks": [
     {
+      "id": "client-onboarding",
+      "title": "🤝 Client Onboarding & Discovery",
+      "difficulty": "Intermediate",
+      "time": "20 min",
+      "description": "Gebruik de Discovery Agent om een nieuwe klant technisch en commercieel te onboarden.",
+      "steps": [
+        {
+          "title": "Nieuwe Klant Aanmaken",
+          "description": "Start de technische provisioning voor een nieuwe klant.",
+          "action": "openOnboardingModal()",
+          "details": "Klik op 'Nieuwe Klant' in de top-bar. Athena maakt de folders aan, provisiont een Google Sheet en start de eerste scrape."
+        },
+        {
+          "title": "Discovery Interview",
+          "description": "Voer een interactief gesprek met de AI om de business-noden te verhelderen.",
+          "details": "Open de terminal en run `athcli`. Kies de 'Onboarding Agent'. De AI stelt vragen over de doelgroep, diensten en stijlvoorkeuren."
+        },
+        {
+          "title": "Sitetype Generatie",
+          "description": "Laat de AI een op maat gemaakte blauwdruk maken op basis van het interview.",
+          "action": "showSection('sitetypes')",
+          "details": "Gebruik de 'Sitetype Wizard' en plak de samenvatting van het interview in de business beschrijving. De AI genereert de optimale database en design."
+        }
+      ]
+    },
+    {
       "id": "quick-start",
       "title": "🚀 Quick-Start: Van Nul naar Live",
       "difficulty": "Beginner",

@@ -14,9 +14,9 @@ node athena-agent.js <command> [arguments]
 
 | Command | Arguments | Description |
 | :--- | :--- | :--- |
-| `list-projects` | None | Lists all source projects in `input/`. |
+| `list-projects` | None | Lists all data sources in `input/`. |
 | `list-sites` | None | Lists all generated sites in `sites/`. |
-| `create-site` | JSON String | Creates a new site. <br>Ex: `'{"projectName": "foo", "siteType": "portfolio"}'` |
+| `create-site` | JSON String | Creates a new site from a data source. <br>Ex: `'{"projectName": "foo", "siteType": "portfolio"}'` |
 | `update-site` | `name` `--instruction "..."` | Updates a site using AI instructions. |
 | `deploy` | `name` `[message]` | Deploys a site to GitHub Pages. |
 
@@ -24,9 +24,9 @@ node athena-agent.js <command> [arguments]
 
 | Command | Arguments | Description |
 | :--- | :--- | :--- |
-| `sync-to-sheet` | `projectName` | Pushes local JSON data to the linked Google Sheet. |
-| `pull-from-sheet` | `projectName` | Pulls data from Google Sheet to local JSON. |
-| `provision-sheet` | `projectName` | Auto-generates a new Google Sheet for a project. |
+| `sync-to-sheet` | `name` | Pushes local JSON data to the linked Google Sheet. |
+| `pull-from-sheet` | `name` | Pulls data from Google Sheet to local JSON. |
+| `provision-sheet` | `name` | Auto-generates a new Google Sheet for a data source. |
 
 ### Marketing & SEO (New in v8.0)
 

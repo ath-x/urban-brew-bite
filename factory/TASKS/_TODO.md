@@ -19,6 +19,7 @@
 - [ ] **Advanced Generator:** Explore AST-based or template-based code injection for safer project generation.
 
 ## 🛠️ Engine Improvements
+- [x] **Data Gateway**: Replaced legacy 'Sync' with a unified Data Gateway (Cloud Pull/Push + Pull from local input folder).
 - [ ] Streamline `scavengeAssets` for faster and more reliable asset mapping.
 - [ ] Implement a unified data aggregator for complex sites and MPA structures.
 - [ ] Optimize the internal build and dev-server orchestration.
