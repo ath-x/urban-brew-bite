@@ -83,20 +83,41 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ATHENA_DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}
           API_TOKEN_GITHUB: ${{ secrets.ATHENA_DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}
-          # Forceer push naar de organisatie
-          OWNER: athena-cms-factory
+          DEFAULT_OWNER: ${{ github.repository_owner }}
         run: |
           for SITE in ${{ steps.detect.outputs.sites }}; do
             echo "📦 Verwerken van site: $SITE"
             
             if [ -d "sites/$SITE" ]; then
-              # Controleer of repo bestaat, zo niet: maak aan
-              if ! gh repo view $OWNER/$SITE >/dev/null 2>&1; then
-                echo "➕ Repo $OWNER/$SITE bestaat niet. Aanmaken..."
-                gh repo create $OWNER/$SITE --public --description "Athena CMS Site: $SITE"
+              # Probeer de specifieke repoUrl uit de site settings te halen
+              DEPLOY_CONFIG="sites/$SITE/project-settings/deployment.json"
+              TARGET_REPO=""
+              
+              if [ -f "$DEPLOY_CONFIG" ]; then
+                echo "🔍 Deployment config gevonden voor $SITE"
+                # Extraheer URL en zet om naar SSH-formaat of gebruik token-auth URL
+                RAW_URL=$(cat "$DEPLOY_CONFIG" | jq -r '.repoUrl' 2>/dev/null || echo "")
+                if [[ "$RAW_URL" == *"github.com"* ]]; then
+                  # Extraheer 'owner/repo' uit de URL
+                  REPO_PATH=$(echo "$RAW_URL" | sed 's/.*github.com\///' | sed 's/\.git$//')
+                  TARGET_REPO="$REPO_PATH"
+                  echo "🎯 Doel gevonden via config: $TARGET_REPO"
+                fi
               fi
 
-              REMOTE_URL="https://x-access-token:${API_TOKEN_GITHUB}@github.com/${OWNER}/${SITE}.git"
+              # Fallback als er geen config is
+              if [ -z "$TARGET_REPO" ]; then
+                TARGET_REPO="$DEFAULT_OWNER/$SITE"
+                echo "⚠️ Geen config gevonden, gebruik fallback: $TARGET_REPO"
+              fi
+
+              # Controleer of repo bestaat, zo niet: maak aan
+              if ! gh repo view $TARGET_REPO >/dev/null 2>&1; then
+                echo "➕ Repo $TARGET_REPO bestaat niet. Aanmaken..."
+                gh repo create $TARGET_REPO --public --description "Athena CMS Site: $SITE"
+              fi
+
+              REMOTE_URL="https://x-access-token:${API_TOKEN_GITHUB}@github.com/${TARGET_REPO}.git"
               echo "Pushing sites/$SITE to $REMOTE_URL"
               
               # Gebruik subtree split om de site-map te isoleren en te pushen
