@@ -51,6 +51,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track: Extract AI Waterfall Module (Standalone AI Waterfall System)**
   *Link: [./tracks/extract-ai-waterfall-module/](./tracks/extract-ai-waterfall-module/)*
 
+- [x] **Track: Debug Dashboard Sites Tab (Bug Fixes & UX improvements)**
+  *Link: [./tracks/debug-dashboard-sites-20260220/](./tracks/debug-dashboard-sites-20260220/)*
+
 ---
 
 ## Active & Pending Tracks
@@ -66,3 +69,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [ ] **Track: Documentation Sync & Jules Integration**
   *Link: [./tracks/docs-sync/](./tracks/docs-sync/)*
+
+- [ ] **Track: Debug Dashboard Sites Tab (Layout & Navigation Fixes)**
+  *Link: [./tracks/debug-dashboard-2-20260220/](./tracks/debug-dashboard-2-20260220/)*
