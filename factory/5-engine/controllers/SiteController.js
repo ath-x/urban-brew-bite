@@ -98,6 +98,15 @@ export class SiteController {
             if (fs.existsSync(deployFile)) {
                 deployData = JSON.parse(fs.readFileSync(deployFile, 'utf8'));
                 status = deployData.status || 'live';
+
+                // Fallback for missing liveUrl/repoUrl if status is live
+                if (status === 'live' && !deployData.liveUrl) {
+                    const githubUser = process.env.GITHUB_USER || this.configManager.get('GITHUB_USER');
+                    const githubOrg = process.env.GITHUB_ORG || this.configManager.get('GITHUB_ORG');
+                    const owner = githubOrg || githubUser || 'athena-cms-factory';
+                    deployData.liveUrl = `https://${owner}.github.io/${site}/`;
+                    if (!deployData.repoUrl) deployData.repoUrl = `https://github.com/${owner}/${site}`;
+                }
             }
 
             if (fs.existsSync(sheetFile)) {
@@ -116,7 +125,10 @@ export class SiteController {
                 } catch (e) { }
             }
 
-            return { name: site, status, deployData, sheetUrl: sheetData, isDataEmpty, siteType };
+            const isInstalled = fs.existsSync(path.join(sitePath, 'node_modules'));
+            const port = this.getSitePort(site, sitePath);
+
+            return { name: site, status, deployData, sheetUrl: sheetData, isDataEmpty, siteType, isInstalled, port };
         });
     }
 
@@ -262,11 +274,47 @@ export class SiteController {
     }
 
     /**
+     * Update deployment settings manually
+     */
+    updateDeployment(data) {
+        const { projectName, status, liveUrl, repoUrl } = data;
+        const sitePath = path.join(this.sitesDir, projectName);
+        const settingsDir = path.join(sitePath, 'project-settings');
+        const deployFile = path.join(settingsDir, 'deployment.json');
+
+        if (!fs.existsSync(settingsDir)) fs.mkdirSync(settingsDir, { recursive: true });
+
+        const deployData = {
+            deployedAt: new Date().toISOString(),
+            repoUrl: repoUrl || "",
+            liveUrl: liveUrl || "",
+            status: status || 'live'
+        };
+
+        fs.writeFileSync(deployFile, JSON.stringify(deployData, null, 2));
+        return { success: true, message: "Deployment settings updated." };
+    }
+
+    /**
+     * Link a Google Sheet to a site
+     */
+    async linkSheet(id, sheetUrl) {
+        return this.execService.runEngineScript('sheet-linker-wizard.js', [id, sheetUrl]);
+    }
+
+    /**
+     * Auto-provision a Google Sheet for a site
+     */
+    async autoProvision(id) {
+        return this.execService.runEngineScript('auto-sheet-provisioner.js', [id]);
+    }
+
+    /**
      * Sync local JSON data to Google Sheet
      */
     async syncToSheet(id) {
         await this.dataManager.syncToSheet(id);
-        return { success: true, message: "Sync completed successfully." };
+        return { success: true, message: "Sync naar Google Sheet voltooid." };
     }
 
     /**
@@ -274,7 +322,7 @@ export class SiteController {
      */
     async pullFromSheet(id) {
         await this.dataManager.syncFromSheet(id);
-        return { success: true, message: "Data successfully pulled from Google Sheets." };
+        return { success: true, message: "Data opgehaald uit Google Sheet." };
     }
 
     /**

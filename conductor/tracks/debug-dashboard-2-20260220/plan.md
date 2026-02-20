@@ -12,8 +12,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Implement Responsive Grid Layout' (Protocol in workflow.md)
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Implement Responsive Grid Layout' (Protocol in workflow.md)
 
-## Phase 3: Fix Live Link Navigation
-- [ ] Task: Create failing unit tests for the 'Live' link generation/click handler logic
-- [ ] Task: Update the click handler for the 'Live' tag to correctly resolve the live URL and open it in a new tab
-- [ ] Task: Verify that clicking 'Live' opens the correct GitHub/live URL in a new browser tab
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Fix Live Link Navigation' (Protocol in workflow.md)
+## Phase 3: Fix Live Link Navigation & Local Status
+- [x] Task: Update the site list logic in `SiteController.js` to include `isInstalled` and `port` status
+- [x] Task: Update the click handler for the 'Live' tag to correctly resolve the live URL and open it in a new tab
+- [x] Task: Implement visual feedback for 'READY' (node_modules present) and clickable 'LOCAL' tags
+- [x] Task: Display assigned port numbers on site cards for better developer overview
+- [x] Task: Verify that clicking 'Live' opens the correct GitHub/live URL in a new browser tab
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Fix Live Link Navigation & Local Status' (Protocol in workflow.md)

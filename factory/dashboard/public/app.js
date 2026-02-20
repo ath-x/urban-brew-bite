@@ -52,7 +52,7 @@ async function openToolServer(type) {
     }, 800);
 }
 
-async function openDock() {
+async function openDock(siteName = null) {
     if (!systemConfig) await loadSystemConfig();
     const port = systemConfig.ports.dock;
 
@@ -60,7 +60,9 @@ async function openDock() {
 
     // We geven de server even tijd om op te starten
     setTimeout(() => {
-        window.open(`http://${window.location.hostname}:${port}`, '_blank');
+        let url = `http://${window.location.hostname}:${port}`;
+        if (siteName) url += `?site=${siteName}`;
+        window.open(url, '_blank');
     }, 1500);
 }
 
@@ -1661,28 +1663,49 @@ async function loadSites() {
 
         const activeServer = activeServers.find(s => s.siteName === name);
         const isRunning = !!activeServer;
+        const isInstalled = site.isInstalled;
+        const assignedPort = site.port || 5000;
+        const localUrl = isRunning ? activeServer.url : `http://localhost:${assignedPort}`;
 
         const card = document.createElement('div');
         card.className = `site-card status-${status} ${isRunning ? 'is-running' : ''}`;
 
         // --- BADGES LOGIC ---
         let badgesHtml = '';
-        if (isRunning) {
-            badgesHtml += `
-                <a href="${activeServer.url}" target="_blank" onclick="event.stopPropagation()" class="badge badge-local clickable" title="Open preview: http://localhost:${activeServer.port}">
-                    <i class="fa-solid fa-rocket"></i> ACTIVE
-                </a>`;
-        } else if (status === 'local') {
-            badgesHtml += `<span class="badge badge-local"><i class="fa-solid fa-code"></i> LOCAL</span>`;
+        
+        // Readiness Badge
+        if (isInstalled) {
+            badgesHtml += `<span class="badge badge-live" style="background:rgba(74, 222, 128, 0.1); border-color:rgba(74, 222, 128, 0.3); color:#4ade80;" title="node_modules aanwezig - Klaar om te draaien"><i class="fa-solid fa-check-double"></i> READY</span>`;
+        } else {
+            badgesHtml += `<span class="badge badge-error" style="opacity:0.6;" title="node_modules ontbreken - Installatie vereist"><i class="fa-solid fa-circle-exclamation"></i> NO-DEPS</span>`;
         }
 
-        if (status === 'live' && liveUrl) {
+        // Local/Active Badge
+        if (isRunning) {
             badgesHtml += `
-                <a href="${liveUrl}" target="_blank" onclick="event.stopPropagation()" class="badge badge-live clickable" title="Live Site">
+                <a href="${activeServer.url}" target="_blank" onclick="event.stopPropagation()" class="badge badge-local clickable" title="Open preview op poort ${activeServer.port}">
+                    <i class="fa-solid fa-rocket"></i> ACTIVE
+                </a>`;
+        } else {
+            badgesHtml += `
+                <a href="${localUrl}" target="_blank" onclick="event.stopPropagation()" class="badge badge-local clickable" style="opacity:0.5; filter:grayscale(1);" title="Site is momenteel offline lokaal. Klik om te proberen (vereist start).">
+                    <i class="fa-solid fa-power-off"></i> LOCAL
+                </a>`;
+        }
+
+        // Live Badge
+        let finalLiveUrl = liveUrl;
+        if (status === 'live' && !finalLiveUrl) {
+            // Frontend Fallback if backend didn't provide it
+            const owner = "athena-cms-factory"; 
+            finalLiveUrl = `https://${owner}.github.io/${name}/`;
+        }
+
+        if (status === 'live') {
+            badgesHtml += `
+                <a href="${finalLiveUrl}" target="_blank" onclick="event.stopPropagation()" class="badge badge-live clickable" title="Open de live website op GitHub Pages">
                     <i class="fa-solid fa-globe"></i> LIVE
                 </a>`;
-        } else if (status === 'live') {
-            badgesHtml += `<span class="badge badge-live"><i class="fa-solid fa-globe"></i> LIVE</span>`;
         }
 
         const emptyBadgeHtml = site.isDataEmpty ? `<span class="badge badge-error" style="padding:2px 6px; font-size:0.5rem;" title="Geen data gevonden!"><i class="fa-solid fa-triangle-exclamation"></i> EMPTY</span>` : '';
@@ -1700,7 +1723,7 @@ async function loadSites() {
                 </div>
                 
                 <p style="font-size: 0.75rem; color: var(--text-muted); min-height: 1.2em; line-height: 1.4; font-weight: 500; margin-bottom:10px;">
-                    ${isRunning ? `<span style="color:#4ade80; font-weight:700;">Online (Port ${activeServer.port})</span>` : (status === 'live' ? 'Gepubliceerd via GitHub Pages' : 'Lokaal project')}
+                    ${isRunning ? `<span style="color:#4ade80; font-weight:700;">Online (Port ${activeServer.port})</span>` : (status === 'live' ? `Gepubliceerd via GitHub Pages (Port ${assignedPort})` : `Lokaal project (Port ${assignedPort})`)}
                     ${emptyBadgeHtml}
                 </p>
 
@@ -1762,8 +1785,7 @@ async function loadSites() {
 
 function openDockForSite(name, event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
-    // Voor nu hergebruiken we openDock, maar we kunnen later site-focus toevoegen
-    openDock();
+    openDock(name);
 }
 
 function goToDeployForSite(name, event) {
@@ -1912,15 +1934,12 @@ async function openMediaVisualizerForSite(name, event) {
     if (!systemConfig) await loadSystemConfig();
     const port = systemConfig.ports.media;
 
-    // Set de actieve site in de visualizer backend
-    await fetch(`${API}/set-site`, {
+    // Start de server met de site-focus direct meegegeven
+    fetch(`${API}/start-media-server`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ site: name })
+        body: JSON.stringify({ siteName: name })
     });
-
-    // Start de server
-    fetch(`${API}/start-media-server`, { method: 'POST' });
 
     setTimeout(() => {
         window.open(`http://${window.location.hostname}:${port}`, '_blank');
