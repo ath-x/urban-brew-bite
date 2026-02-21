@@ -65,8 +65,8 @@
     "siteType": "chocolade-shop-type",
     "generatedAt": "2026-02-07T21:23:23.363Z",
     "governance_mode": "dev-mode",
-    "repoUrl": null,
-    "liveUrl": null,
+    "repoUrl": "https://github.com/athena-cms-factory/demo-bakkerij",
+    "liveUrl": "https://athena-cms-factory.github.io/demo-bakkerij",
     "port": 5459
   },
   {

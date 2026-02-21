@@ -48,7 +48,7 @@
                     <i class="fa-solid fa-cloud-arrow-up"></i> Deployment
                 </button>
                 <button class="nav-btn" onclick="showSection('live-manager', this)">
-                    <i class="fa-solid fa-earth-europe"></i> Live Manager
+                    <i class="fa-solid fa-earth-europe"></i> URL Manager
                 </button>
 
                 <div class="nav-separator"></div>
@@ -419,26 +419,27 @@
                 </div>
             </section>
 
-            <!-- SECTION: LIVE MANAGER -->
+            <!-- SECTION: URL MANAGER -->
             <section id="live-manager" class="view-section hidden">
                 <div class="section-header">
-                    <h3><i class="fa-solid fa-earth-europe accent"></i> Live Site & URL Manager</h3>
+                    <h3><i class="fa-solid fa-earth-europe accent"></i> Athena URL Manager</h3>
                     <div class="flex-row" style="gap: 10px;">
                         <button onclick="syncLiveRegistry()" class="primary-btn" style="padding: 8px 15px; font-size: 0.8rem; background: var(--purple);">
                             <i class="fa-solid fa-arrows-rotate"></i> Sync Registry
                         </button>
                     </div>
                 </div>
-                <p class="muted mb-20">Beheer hier de live URLs en GitHub repositories van alle projecten.</p>
+                <p class="muted mb-20">Beheer hier de lokale en live URLs van alle projecten.</p>
                 
                 <div class="table-container bg-darker p-20 rounded-10 border w-full">
                     <table class="w-full text-left">
                         <thead>
                             <tr style="border-bottom: 1px solid var(--border); color: var(--muted); font-size: 0.8rem; text-transform: uppercase;">
-                                <th style="padding: 10px; width: 15%;">Project ID</th>
-                                <th style="padding: 10px; width: 10%;">Status</th>
-                                <th style="padding: 10px; width: 35%;">Live URL (GitHub Pages)</th>
-                                <th style="padding: 10px; width: 30%;">Repo URL</th>
+                                <th style="padding: 10px; width: 12%;">Project ID</th>
+                                <th style="padding: 10px; width: 8%;">Status</th>
+                                <th style="padding: 10px; width: 20%;">Local URL</th>
+                                <th style="padding: 10px; width: 25%;">Live URL (GitHub)</th>
+                                <th style="padding: 10px; width: 25%;">Repo URL</th>
                                 <th style="padding: 10px; width: 10%;">Actie</th>
                             </tr>
                         </thead>

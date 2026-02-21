@@ -51,6 +51,9 @@ async function syncRegistry() {
             try { configData = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch (e) {}
         }
 
+        const port = portMap[project] || 5000;
+        const localUrl = `http://localhost:${port}/${project}/`;
+
         registry.push({
             id: project,
             name: configData.projectName || project,
@@ -59,7 +62,8 @@ async function syncRegistry() {
             governance_mode: configData.governance_mode || 'dev-mode',
             repoUrl: deployData.repoUrl || null,
             liveUrl: deployData.liveUrl || null,
-            port: portMap[project] || 5000,
+            localUrl: localUrl,
+            port: port,
             status: deployData.status || 'local'
         });
     }

@@ -30,15 +30,56 @@ const VisualEditor = ({ item, selectedSite, onSave, onCancel, onUpload }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [allSites, setAllSites] = useState([]);
+  const [isDeploying, setIsDeploying] = useState(false);
 
   useEffect(() => {
     if (isLink) {
         fetch('./sites.json')
             .then(res => res.json())
-            .then(data => setAllSites(data.filter(s => s.liveUrl)))
+            .then(data => setAllSites(data))
             .catch(err => console.warn("Failed to load sites registry:", err));
     }
   }, [isLink]);
+
+  // Check if current URL is a local URL for a project that isn't live yet
+  const getProjectFromLocalUrl = (url) => {
+    if (!url) return null;
+    return allSites.find(s => url.includes(`localhost:${s.port}/${s.id}/`));
+  };
+
+  const localProject = isLink ? getProjectFromLocalUrl(linkData.url) : null;
+  const canDeploy = localProject && !localProject.repoUrl;
+
+  const handleQuickDeploy = async () => {
+    if (!localProject || !confirm(`Wil je ${localProject.id} nu deployen naar GitHub?`)) return;
+    
+    setIsDeploying(true);
+    try {
+        // Dynamically detect dashboard origin based on current host
+        const dashboardPort = import.meta.env.VITE_DASHBOARD_PORT || '5001';
+        const dashboardUrl = `${window.location.protocol}//${window.location.hostname}:${dashboardPort}`;
+        
+        const res = await fetch(`${dashboardUrl}/api/deploy`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projectName: localProject.id, commitMsg: "Initial deployment via Dock" })
+        });
+        const result = await res.json();
+        if (result.success) {
+            alert(`✅ Deployment geslaagd!\nLive: ${result.result.liveUrl}`);
+            // Refresh sites to get the new live URL
+            const freshSites = await fetch('./sites.json').then(r => r.json());
+            setAllSites(freshSites);
+            setLinkData(prev => ({ ...prev, url: result.result.liveUrl }));
+        } else {
+            alert(`❌ Fout: ${result.error}`);
+        }
+    } catch (err) {
+        alert("Fout bij verbinden met dashboard.");
+    } finally {
+        setIsDeploying(false);
+    }
+  };
 
   const sendPreview = (val, format) => {
     const iframe = document.querySelector('iframe');
@@ -233,23 +274,42 @@ const VisualEditor = ({ item, selectedSite, onSave, onCancel, onUpload }) => {
                </div>
 
                {allSites.length > 0 && (
-                 <div>
-                    <label className="text-[10px] uppercase font-bold text-slate-400 mb-2 block">Quick Link (Live Sites)</label>
-                    <select 
-                      onChange={(e) => {
-                        const url = e.target.value;
-                        if (url) setLinkData(prev => ({ ...prev, url }));
-                      }}
-                      value={allSites.some(s => s.liveUrl === linkData.url) ? linkData.url : ""}
-                      className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                    >
-                      <option value="">-- Select a live project --</option>
-                      {allSites.map(site => (
-                        <option key={site.id} value={site.liveUrl}>
-                          {site.liveUrl} ({site.name})
-                        </option>
-                      ))}
-                    </select>
+                 <div className="space-y-3">
+                    {canDeploy && (
+                      <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center justify-between">
+                        <div className="flex-1 pr-4">
+                          <p className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase">Local Project Detected</p>
+                          <p className="text-[9px] text-amber-600 dark:text-amber-500 italic">This project is not yet live on GitHub.</p>
+                        </div>
+                        <button 
+                          onClick={handleQuickDeploy}
+                          disabled={isDeploying}
+                          className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold rounded-lg shadow-sm flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                        >
+                          {isDeploying ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-cloud-arrow-up"></i>}
+                          Deploy Now
+                        </button>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-slate-400 mb-2 block">Quick Link (Live Sites)</label>
+                      <select 
+                        onChange={(e) => {
+                          const url = e.target.value;
+                          if (url) setLinkData(prev => ({ ...prev, url }));
+                        }}
+                        value={allSites.some(s => s.liveUrl === linkData.url) ? linkData.url : ""}
+                        className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                      >
+                        <option value="">-- Select a live project --</option>
+                        {allSites.filter(s => s.liveUrl).map(site => (
+                          <option key={site.id} value={site.liveUrl}>
+                            {site.liveUrl} ({site.name})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                  </div>
                )}
              </div>

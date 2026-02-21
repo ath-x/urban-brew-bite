@@ -1,12 +1,16 @@
 # ✅ DONE - Athena CMS
 
-## Live Manager & Link Resolution - 2026-02-21
-- [x] **Centralized Live Manager GUI**
-    - Toegevoegd nieuwe "Live Manager" tab in het Dashboard.
-    - Ondersteuning voor het inline bewerken en opslaan van Live URLs en Repo URLs.
-    - Visuele feedback voor automatisch gegenereerde fallback URLs (italic).
-- [x] **Automated Registry Sync**
-    - Ontwikkeld `factory/5-engine/sync-sites-registry.js` om de centrale `sites.json` te synchroniseren met alle `deployment.json` bestanden.
+## Live & URL Manager & Link Resolution - 2026-02-21
+- [x] **Athena URL Manager GUI**
+    - Herbenoemd van Live Manager naar URL Manager voor breder bereik.
+    - Toegevoegd kolom voor **Local URL** met play-icoon voor directe lokale navigatie.
+    - Optimalisatie van kolombreedtes (Repo URL breder, Local URL smaller).
+- [x] **Dock "Quick Deploy" Integratie**
+    - Geautomatiseerde detectie van lokale links naar on-gedeployde sites in de `VisualEditor`.
+    - Geïmplementeerd "Deploy Now" paneel voor snelle publicatie vanuit de bewerkings-flow.
+    - Dynamische poort-detectie (Dashboard origin) voor stabiele API-communicatie.
+- [x] **Automated Registry Sync v2**
+    - Bijgewerkt van `sites.json` met `localUrl` ondersteuning.
 - [x] **Dock UI Refinement**
     - Vervangen van "pills" door een compact dropdown-menu in de `VisualEditor` voor live site suggesties.
     - Weergave van volledige `https://...` URLs in de dropdown voor maximale duidelijkheid.

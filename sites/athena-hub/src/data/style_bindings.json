@@ -55,5 +55,13 @@
     "textAlign": "left",
     "fontFamily": "sans-serif",
     "textShadow": false
+  },
+  "contact:0:email": {
+    "bold": false,
+    "italic": false,
+    "fontSize": "16px",
+    "textAlign": "left",
+    "fontFamily": "sans-serif",
+    "textShadow": false
   }
 }

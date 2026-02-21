@@ -78,8 +78,8 @@ This is the "living" phase of the project, managed via the **Data Gateway**.
 ### 5. Deployment & Live Management Phase
 Once a site is ready for the world, it is moved to production.
 - **GitHub Pages:** Sites are published to the `athena-cms-factory` organization.
-- **Live Manager:** Use the centralized Dashboard tool to manage Live URLs and repository links.
-- **Link Resolution:** The `resolve-localhost-links.js` utility ensures all internal links (e.g., in a portfolio) point to the live `https://...` versions instead of development ports.
+- **URL Manager:** Use the centralized Dashboard tool to manage Local/Live URLs and repository links.
+- **Link Resolution:** The `resolve-localhost-links.js` utility ensures all internal links point to live URLs.
 - **Central Registry:** All live sites are tracked in `dock/public/sites.json` for easy cross-linking within the Athena Dock.
 
 ## 🚀 Key Advantages

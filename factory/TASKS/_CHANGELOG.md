@@ -2,11 +2,11 @@
 
 ## [7.9.6] - 2026-02-21
 ### Added
-- **Centralized Live Manager**: Introduced a new dashboard section to manage Live URLs and GitHub repositories for all sites in one place.
-- **Automated Registry Sync**: Added `sync-sites-registry.js` to automatically keep the central `sites.json` up-to-date with individual `deployment.json` files.
-- **Link Resolver Utility**: Created `resolve-localhost-links.js` to batch-convert localhost URLs to live production URLs in site data.
-- **Refined Dock Link Picker**: Replaced "pills" with a searchable dropdown menu in the Dock's `VisualEditor`, showing full URLs for better clarity.
-- **Fallback URL Intelligence**: Enhanced `SiteController` to provide smart fallback URLs (GitHub Pages/Repo) for sites marked as "live" but missing explicit configuration.
+- **Athena URL Manager**: Rebranded the Live Manager to "URL Manager" and added a dedicated column for **Local URLs** with direct preview/play support.
+- **Dock "Quick Deploy" Intelligence**: Implemented a one-click "Deploy Now" button in the `VisualEditor` link modal that appears when a local project without a remote repository is detected.
+- **Dynamic Dashboard Detection**: Upgraded the Dock's communication logic to dynamically detect the Dashboard's port (e.g., 5001), ensuring cross-tool reliability.
+- **Centralized Registry v2**: Added `localUrl` tracking to the central `sites.json` registry.
+- **UI Refinements**: Optimized table column widths in the URL Manager for better data visibility (Repo URL expanded, Local URL tightened).
 
 ### Fixed
 - **Dock Editing Restore**: Fixed broken editing functionality in `athena-hub` by upgrading components to v7.9.2 and adding `SITE_CLICK` event handling to `dock-connector.js`.

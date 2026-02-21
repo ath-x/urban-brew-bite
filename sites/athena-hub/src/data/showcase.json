@@ -7,7 +7,7 @@
       "label": "BEKIJK PROJECT",
       "url": "https://athena-cms-factory.github.io/de-salon-site"
     },
-    "image": "salon_hero.png"
+    "image": "technische.png"
   },
   {
     "name": "Bakkerij Artisanaal",
@@ -15,7 +15,7 @@
     "description": "Prachtige productcatalogus voor lokale winkels met bestelmogelijkheid via e-mail.",
     "link": {
       "label": "BEKIJK PROJECT",
-      "url": "http://localhost:5459/demo-bakkerij/"
+      "url": "https://athena-cms-factory.github.io/demo-bakkerij"
     },
     "image": "artisanal-1-1770398212360.jpeg"
   },

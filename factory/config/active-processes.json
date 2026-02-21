@@ -1,10 +1,17 @@
 {
   "5002": {
-    "pid": 14127,
+    "pid": 28465,
     "id": "athena-dock",
     "type": "dock",
-    "startTime": "2026-02-21T14:47:48.945Z",
+    "startTime": "2026-02-21T15:23:59.133Z",
     "logFile": "/home/kareltestspecial/ath/athena-x/factory/output/logs/athena-dock-dock.log"
+  },
+  "5004": {
+    "pid": 28886,
+    "id": "media-mapper",
+    "type": "editor",
+    "startTime": "2026-02-21T15:24:14.323Z",
+    "logFile": "/home/kareltestspecial/ath/athena-x/factory/output/logs/media-mapper-editor.log"
   },
   "5982": {
     "pid": 5629,

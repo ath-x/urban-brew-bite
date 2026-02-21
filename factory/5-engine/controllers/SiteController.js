@@ -305,10 +305,14 @@ export class SiteController {
         );
 
         return projects.map(project => {
-            const deployFile = path.join(this.sitesDir, project, 'project-settings', 'deployment.json');
+            const projectPath = path.join(this.sitesDir, project);
+            const deployFile = path.join(projectPath, 'project-settings', 'deployment.json');
             let deployData = { liveUrl: '', repoUrl: '', status: 'local' };
             let flags = { liveUrlFallback: false, repoUrlFallback: false };
             
+            const port = this.getSitePort(project, projectPath);
+            const localUrl = `http://localhost:${port}/${project}/`;
+
             if (fs.existsSync(deployFile)) {
                 try { 
                     deployData = JSON.parse(fs.readFileSync(deployFile, 'utf8')); 
@@ -330,7 +334,7 @@ export class SiteController {
                     }
                 } catch (e) {}
             }
-            return { id: project, ...deployData, ...flags };
+            return { id: project, localUrl, ...deployData, ...flags };
         });
     }
 

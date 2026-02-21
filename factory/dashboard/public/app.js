@@ -2149,6 +2149,12 @@ async function loadLiveManager() {
                         <option value="archived" ${site.status === 'archived' ? 'selected' : ''}>Archived</option>
                     </select>
                 </td>
+                <td style="padding: 10px;">
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <input type="text" value="${site.localUrl || ''}" class="inline-input" style="width: 100%; opacity: 0.6;" readonly>
+                        <a href="${site.localUrl}" target="_blank" class="action-btn" style="width: 25px; height: 25px;"><i class="fa-solid fa-play"></i></a>
+                    </div>
+                </td>
                 <td style="padding: 10px; position: relative;">
                     <input type="text" id="live-${site.id}" value="${site.liveUrl || ''}" placeholder="https://..." class="inline-input" style="width: 100%; ${liveStyle}" title="${liveTitle}">
                 </td>
