@@ -40,7 +40,7 @@
 ```
 
 ## 🏛️ Project Architecture
-Athena is an automated factory for React 19 + Tailwind v4 sites, built as a monorepo.
+Athena v8 is an automated factory featuring the v33 Sync Bridge and Modular Component Architecture, built as a monorepo.
 - **factory/**: Dashboard (`dashboard/`), CLI (`cli/`), Engine (`5-engine/`), Utilities (`6-utilities/`).
 - **dock/**: Visual Editor (Athena Dock) - communicates via `postMessage`.
 - **input/**: Raw data (TSV/JSON/Scrapes).
@@ -76,3 +76,4 @@ Athena is an automated factory for React 19 + Tailwind v4 sites, built as a mono
 - **Sites**: Individual client repositories generated and published to the `athena-cms-factory` GitHub organization via CI/CD (GitHub Actions) from the monorepo.
 - **Commit Messages**: Prefix with type (e.g., `feat:`, `fix:`, `refactor:`).
 - **Pushing**: Always check `git remote -v` for the monorepo. Individual site repos are managed by the CI/CD pipeline.
+\n### 🛡️ v8 Excellence Standards (2026)\n- **Sync Bridge:** Always use v33 On-Demand Sync in App.jsx.\n- **Data:** Prefer 'all_data.json' aggregation for performance.\n- **Layout:** Modularize sections in 'src/components/sections/'.
