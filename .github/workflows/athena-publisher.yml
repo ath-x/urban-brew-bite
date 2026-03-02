@@ -12,6 +12,7 @@ on:
       - 'sites/**'
     branches:
       - main
+      - 'feat/*'
 
 jobs:
   publish:
@@ -83,8 +84,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ATHENA_DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}
           API_TOKEN_GITHUB: ${{ secrets.ATHENA_DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}
-          DEFAULT_OWNER: ${{ github.repository_owner }}
+          DEFAULT_OWNER: "athena-cms-factory"
         run: |
+          # Bepaal de huidige branch naam
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          echo "Huidige branch: $CURRENT_BRANCH"
+          
           for SITE in ${{ steps.detect.outputs.sites }}; do
             echo "📦 Verwerken van site: $SITE"
             
@@ -111,17 +116,20 @@ jobs:
                 echo "⚠️ Geen config gevonden, gebruik fallback: $TARGET_REPO"
               fi
 
-              # Controleer of repo bestaat, zo niet: maak aan
+              # Controleer of repo bestaat, zo niet: maak aan onder de juiste owner
               if ! gh repo view $TARGET_REPO >/dev/null 2>&1; then
-                echo "➕ Repo $TARGET_REPO bestaat niet. Aanmaken..."
-                gh repo create $TARGET_REPO --public --description "Athena CMS Site: $SITE"
+                echo "➕ Repo $TARGET_REPO bestaat niet. Aanmaken onder $DEFAULT_OWNER..."
+                # Zorg dat we de repo aanmaken in de juiste organisatie
+                ORG_NAME=$(echo "$TARGET_REPO" | cut -d/ -f1)
+                REPO_NAME=$(echo "$TARGET_REPO" | cut -d/ -f2)
+                gh repo create "$TARGET_REPO" --public --description "Athena CMS Site: $SITE" || echo "⚠️ Kon repo niet aanmaken, mogelijk bestaat hij al elders."
               fi
 
               REMOTE_URL="https://x-access-token:${API_TOKEN_GITHUB}@github.com/${TARGET_REPO}.git"
               echo "Pushing sites/$SITE to $REMOTE_URL"
               
-              # Gebruik subtree split om de site-map te isoleren en te pushen
-              SPLIT_SHA=$(git subtree split --prefix=sites/$SITE main)
+              # Gebruik subtree split om de site-map te isoleren en te pushen vanaf de HUIDIGE branch
+              SPLIT_SHA=$(git subtree split --prefix=sites/$SITE $CURRENT_BRANCH)
               git push "$REMOTE_URL" "$SPLIT_SHA":refs/heads/main --force
             fi
           done
