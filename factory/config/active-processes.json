@@ -5,12 +5,5 @@
     "type": "dock",
     "startTime": "2026-03-02T13:33:34.664Z",
     "logFile": "/home/kareltestspecial/0-IT/2-Fabriek/athena/athena-x/factory/output/logs/athena-dock-dock.log"
-  },
-  "5812": {
-    "pid": 13468,
-    "id": "athena-promo",
-    "type": "preview",
-    "startTime": "2026-03-02T13:51:37.356Z",
-    "logFile": "/home/kareltestspecial/0-IT/2-Fabriek/athena/athena-x/factory/output/logs/athena-promo-preview.log"
   }
 }
