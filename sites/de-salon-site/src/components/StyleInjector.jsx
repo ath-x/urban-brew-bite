@@ -33,6 +33,7 @@ const StyleInjector = ({ siteSettings }) => {
       'button_color': ['--color-button'],
       'card_color': ['--color-card', '--bg-surface'],
       'header_color': ['--color-header', '--bg-header'],
+      'footer_color': ['--color-footer-bg'],
       'bg_color': ['--color-background', '--bg-site'],
       'text_color': ['--color-text']
     };

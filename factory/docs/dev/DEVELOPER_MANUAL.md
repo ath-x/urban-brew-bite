@@ -129,6 +129,24 @@ During startup (`main.jsx`), `links_config.json` is loaded. The engine automatic
 
 ---
 
+## 🏗️ Managed Monorepo Architecture (v8.2+)
+
+Athena CMS Factory uses a **Managed Monorepo** structure to maximize disk efficiency and ensure dependency consistency across all 35+ sites.
+
+### 1. Centralized node_modules
+All dependencies are installed in the **project root**. Individual sites in the `sites/` directory use `pnpm workspaces` to symlink their dependencies.
+- **Old Structure**: ~120MB per site (3.5GB+ total).
+- **New Structure**: Shared root modules (Significant disk savings).
+
+### 2. Standard Commands
+Always run dependency-related commands from the **monorepo root**:
+- `pnpm install`: Installs and syncs all dependencies system-wide.
+- `pnpm sites:build`: Triggers a production build for **all** sites simultaneously.
+- `pnpm --filter [site-name] build`: Builds a specific site.
+- `pnpm factory:start`: Starts the Dashboard and Site Reviewer.
+
+---
+
 ## Important Development Rules
 
 ### 1. LogManager & Logging

@@ -21,3 +21,4 @@
 
 ## Asset Reliability & Stability Standard v8.2 - 2026-03-02
 ... rest of history ...
+\n## [8.2.5] - 2026-03-02\n### 🏗️ Infrastructure & Multi-Agent Governance\n- **Managed Monorepo Migration**: Successfully centralized all site node_modules into the project root using pnpm workspaces. Verified via bulk build of 34 sites.\n- **Multi-Agent Conductor v2.3**: Released new 'Propose & Approve' governance protocol for safe autonomous coordination between AI agents.\n- **Athena Site Reviewer UI**: Added resizable and hideable sidebar with persistence via localStorage.\n- **De Salon Optimization**: Fixed dynamic logo logic, sticky header, and hero overlay controls.

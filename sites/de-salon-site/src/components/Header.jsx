@@ -26,7 +26,14 @@ function Header({ primaryTable, tableName, siteSettings = {}, navData = [] }) {
   return (
     <>
       {/* Fixed Sticky Navigation Bar */}
-      <nav className="fixed top-0 left-0 right-0 z-[1000] w-full px-8 py-4 flex items-center justify-between bg-primary/60 backdrop-blur-md border-b border-white/10 transition-all duration-300">
+      <nav 
+        className="fixed top-0 left-0 right-0 z-[1000] w-full px-8 py-4 flex items-center justify-between border-b transition-all duration-300"
+        style={{ 
+          backgroundColor: 'var(--header-bg, var(--color-header, rgba(var(--color-primary-rgb), 0.6)))',
+          backdropFilter: 'var(--header-blur, blur(12px))',
+          borderColor: 'var(--header-border, rgba(255,255,255,0.1))'
+        }}
+      >
         <div className="flex items-center gap-4">
           {settings.site_logo_image ? (
             <div className="w-10 h-10 overflow-hidden">
@@ -69,9 +76,8 @@ function Header({ primaryTable, tableName, siteSettings = {}, navData = [] }) {
 
       {/* Main Header / Hero Section */}
       <header id="home" className="relative min-h-[85vh] flex flex-col overflow-hidden bg-primary text-white pt-20">
-        <div className="flex-1 flex items-center justify-center text-center px-6">
-        {/* Background Media Overlay */}
-        <div className="absolute inset-0 opacity-40">
+        {/* Background Media */}
+        <div className="absolute inset-0">
           <EditableMedia 
             src={settings.hero_image}
             alt={title}
@@ -80,38 +86,46 @@ function Header({ primaryTable, tableName, siteSettings = {}, navData = [] }) {
             dataItem={settings}
             data-dock-bind={JSON.stringify({ file: 'site_settings', index: 0, key: 'hero_image' })}
           />
+          {/* Dynamic Gradient Overlay */}
+          <div 
+            className="absolute inset-0 z-10"
+            style={{ 
+              background: `linear-gradient(to bottom, var(--hero-overlay-start, rgba(0,0,0,0.8)), var(--hero-overlay-end, rgba(0,0,0,0.3)))` 
+            }}
+          ></div>
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto reveal">
-          <EditableText 
-            tagName="h1"
-            value={title}
-            className="text-5xl md:text-7xl lg:text-9xl mb-8 font-serif font-bold text-[var(--color-title)] leading-tight" 
-            cmsBind={{ file: 'site_settings', index: 0, key: 'title' }}
-          />
-          
-          {tagline && (
+        <div className="flex-1 flex items-center justify-center text-center px-6 relative z-20">
+          <div className="relative z-10 max-w-4xl mx-auto reveal">
             <EditableText 
-              tagName="p"
-              value={tagline}
-              className="text-xl md:text-3xl font-light text-white/80 mb-12 max-w-2xl mx-auto leading-relaxed italic"
-              cmsBind={{ file: 'site_settings', index: 0, key: 'tagline' }}
+              tagName="h1"
+              value={title}
+              className="text-5xl md:text-7xl lg:text-9xl mb-8 font-serif font-bold text-[var(--color-title)] leading-tight" 
+              cmsBind={{ file: 'site_settings', index: 0, key: 'title' }}
             />
-          )}
-          <div className="flex gap-6 justify-center">
-             <a href="#diensten_tarieven" className="btn-primary px-10 py-5 text-lg">Onze Diensten</a>
-             <a href="#basisgegevens" className="px-10 py-5 border-2 border-white/30 rounded-full font-bold hover:bg-white hover:text-primary transition-all">Contact</a>
+            
+            {tagline && (
+              <EditableText 
+                tagName="p"
+                value={tagline}
+                className="text-xl md:text-3xl font-light text-white/80 mb-12 max-w-2xl mx-auto leading-relaxed italic"
+                cmsBind={{ file: 'site_settings', index: 0, key: 'tagline' }}
+              />
+            )}
+            <div className="flex gap-6 justify-center">
+               <a href="#diensten_tarieven" className="btn-primary px-10 py-5 text-lg">Onze Diensten</a>
+               <a href="#basisgegevens" className="px-10 py-5 border-2 border-white/30 rounded-full font-bold hover:bg-white hover:text-primary transition-all">Contact</a>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Modern Wave Divider */}
-      <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none rotate-180">
-        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block w-[calc(100%+1.3px)] h-20 fill-background">
-          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V46.96C25.54,60.05,72.59,70.97,121.39,70.97c48.8,0,105.51-12.21,135.51-24.54l64.49,10Z"></path>
-        </svg>
-      </div>
-    </header>
+        {/* Modern Wave Divider */}
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none rotate-180 z-20">
+          <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block w-[calc(100%+1.3px)] h-20 fill-background">
+            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V46.96C25.54,60.05,72.59,70.97,121.39,70.97c48.8,0,105.51-12.21,135.51-24.54l64.49,10Z"></path>
+          </svg>
+        </div>
+      </header>
     </>
   );
 }

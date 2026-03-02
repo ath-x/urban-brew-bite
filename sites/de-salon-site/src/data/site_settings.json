@@ -7,8 +7,14 @@
     "hero_aspect_ratio": "16/9",
     "light_title_color": "#ededed",
     "site_logo_image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
-    "hero_overlay_opacity": "1",
+    "hero_overlay_opacity": "0.53",
     "content_top_offset": "0",
-    "--color-title-rgb": "237 237 237"
+    "--color-title-rgb": "237 237 237",
+    "light_footer_color": "#c43131",
+    "--color-footer-rgb": "223 48 48",
+    "dark_footer_color": "#df3030",
+    "light_header_color": "#c43131",
+    "--color-header-rgb": "223 48 48",
+    "dark_header_color": "#df3030"
   }
 ]

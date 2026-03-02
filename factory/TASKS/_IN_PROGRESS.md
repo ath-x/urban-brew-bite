@@ -6,7 +6,12 @@
   - [x] Refactor Dashboard API into Controllers (System, Tool, Server).
   - [x] Implement `ExecutionService` for unified shell management.
   - [x] Enforce `ConfigManager` in core Engine (`factory.js`).
-- [ ] **Track: Client Onboarding Protocol (The "Discovery Agent")**
+  - [x] **Milestone**: Managed Monorepo Migration (shared node_modules).
+  - [x] **Milestone**: Multi-Agent Conductor v2.3 (Governance-First).
+- [ ] **Track: Site Portfolio Audit & Visual Polish**
+  - [ ] Perform visual audit of all sites in Site Reviewer.
+  - [ ] Optimize Header/Footer components across all templates for dynamic coloring.
+  - [ ] Fix functional testing (Shift+Click) in Reviewer iframe context.
   - [x] Define `ONBOARDING_PROTOCOL.md` and technical specifications.
   - [x] Implement `factory/5-engine/onboarding-wizard.js`.
   - [x] Create `skill-athena-onboarding` for Gemini CLI.

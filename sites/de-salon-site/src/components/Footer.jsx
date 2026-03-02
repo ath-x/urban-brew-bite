@@ -30,7 +30,10 @@ export default function Footer({ primaryTable, socialData = [] }) {
   const kvkKey = findKey('kvk') || findKey('kvk_nummer');
 
   return (
-    <footer className="py-24 bg-slate-950 text-slate-400 border-t border-white/5">
+    <footer 
+      className="py-24 text-slate-400 border-t border-white/5"
+      style={{ backgroundColor: 'var(--color-footer-bg, #020617)' }}
+    >
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-16">
           {/* Company Info */}
