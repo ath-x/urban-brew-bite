@@ -1,16 +1,1 @@
-{
-  "5004": {
-    "pid": 6674,
-    "id": "media-mapper",
-    "type": "editor",
-    "startTime": "2026-03-02T18:22:51.693Z",
-    "logFile": "/home/kareltestspecial/0-IT/2-Fabriek/athena/athena-x/factory/output/logs/media-mapper-editor.log"
-  },
-  "6225": {
-    "pid": 11108,
-    "id": "jets-archive",
-    "type": "preview",
-    "startTime": "2026-03-02T18:49:59.896Z",
-    "logFile": "/home/kareltestspecial/0-IT/2-Fabriek/athena/athena-x/factory/output/logs/jets-archive-preview.log"
-  }
-}
+{}
