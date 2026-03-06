@@ -23,7 +23,7 @@ const StyleInjector = ({ siteSettings }) => {
 
     // 2. Map Settings to CSS Variables
     const prefix = isDark ? 'dark_' : 'light_';
-    
+
     // Core Colors Mapping
     const mappings = {
       'primary_color': ['--color-primary', '--primary-color'],
@@ -59,12 +59,15 @@ const StyleInjector = ({ siteSettings }) => {
     if (settings.content_top_offset !== undefined) root.style.setProperty('--content-top-offset', `${settings.content_top_offset}px`);
     if (settings.header_height !== undefined) root.style.setProperty('--header-height', `${settings.header_height}px`);
 
-    // Header transparency
-    if (settings.header_transparent === true) {
-      root.style.setProperty('--header-bg', 'transparent');
-      root.style.setProperty('--header-blur', 'none');
+    // Header transparency logic (v7.9+)
+    const transparency = parseFloat(settings.header_transparent);
+    if (!isNaN(transparency) && transparency > 0) {
+      const opacity = 1 - transparency;
+      // Use the header RGB color if available
+      root.style.setProperty('--header-bg', `rgba(var(--color-header-rgb, 255, 255, 255), ${opacity})`);
+      root.style.setProperty('--header-blur', transparency > 0.5 ? 'none' : 'blur(16px)');
       root.style.setProperty('--header-border', 'none');
-    } else if (settings.header_transparent === false) {
+    } else {
       root.style.removeProperty('--header-bg');
       root.style.removeProperty('--header-blur');
       root.style.removeProperty('--header-border');

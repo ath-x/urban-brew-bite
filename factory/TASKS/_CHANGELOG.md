@@ -1,5 +1,19 @@
 # Changelog - Athena CMS Factory
 
+## [8.0.6] - 2026-03-06
+### 🎨 Enhanced Design Controls & Text Styling (v8.3)
+- **Header Transparency Slider**: De binaire "Transparent" checkbox in de Dock is vervangen door een traploze **Range Slider (0-100%)**. 
+- **Dynamic Header Logic**: De site-engine berekent nu automatisch de RGBA-waarde van de header-achtergrond op basis van de gekozen themakleur en de transparantie-slider. Tevens wordt de onderlijn (border) automatisch verwijderd bij transparantie voor een modernere uitstraling.
+- **Fixed Header Height Interaction**: De `header_height` slider in de Dock heeft nu een verbeterde state-lock, waardoor het "terugspringen" van de slider tijdens het slepen is verholpen.
+- **Individual Text Styling**: Introductie van per-element styling voor alle `EditableText` componenten in de Dock Visual Editor:
+    - **Color Picker**: Stel per tekst-element een eigen kleur in.
+    - **Font Size & Weight**: Beheer de lettergrootte (px) en dikte (Bold/Normal) afzonderlijk.
+    - **Alignment**: Ondersteuning voor Left, Center en Right uitlijning per tekstblok.
+    - **Italic Support**: Toggle voor schuingedrukte tekst.
+- **Improved Footer Editability**: Alle statische tekst in de Footer (zoals contact-titels, KVK-labels en credits) is nu omgezet naar `EditableText`. Dit betekent dat je nu de volledige footer kunt beheren vanuit de Dock.
+- **Theme Swapping via Dropdown**: De "Global Theme Stijl" selector in de Dock is omgezet naar een dropdown menu voor een schonere interface.
+- **Improved Dock-Connector**: Het communicatieprotocol is uitgebreid om complexe tekst-objecten (tekst + styling) live te injecteren in de iframe preview zonder pagina-reload.
+
 ## [8.0.5] - 2026-03-02
 ### 🔍 Site Reviewer & Stability Engine
 - **Athena Site Reviewer**: Introductie van een nieuwe interactieve reviewer op `localhost:5001/reviewer.html`. Hiermee kunnen 35+ sites systematisch worden gecontroleerd met automatische installatie en opstart-logica.

@@ -4,7 +4,7 @@ import EditableText from './EditableText';
 export default function Footer({ data }) {
   const siteSettings = data?.site_settings || {};
   const contactInfo = data?.contact?.[0] || {};
-  
+
   const naam = siteSettings.site_name || '{{PROJECT_NAME}}';
   const email = contactInfo.email || siteSettings.email || '';
   const locatie = contactInfo.location || '';
@@ -14,10 +14,10 @@ export default function Footer({ data }) {
   return (
     <footer className="py-24 bg-slate-900 text-slate-400 border-t border-slate-800 relative overflow-hidden">
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/5 rounded-full blur-[80px] -ml-32 -mb-32"></div>
-      
+
       <div className="container mx-auto px-6 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-20 mb-20">
-          
+
           {/* Brand Identity */}
           <div className="space-y-6">
             <h3 className="text-3xl font-serif font-bold text-white">
@@ -32,7 +32,9 @@ export default function Footer({ data }) {
 
           {/* Contact Details */}
           <div className="space-y-6">
-            <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-accent">Contact</h4>
+            <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-accent">
+              <EditableText value={siteSettings.footer_contact_title || 'Contact'} table="site_settings" id={0} field="footer_contact_title" />
+            </h4>
             <ul className="space-y-4">
               {email && (
                 <li className="flex items-center gap-4">
@@ -57,11 +59,13 @@ export default function Footer({ data }) {
 
           {/* Legal / Company Info */}
           <div className="space-y-6">
-            <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-accent">Bedrijfsgegevens</h4>
+            <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-accent">
+              <EditableText value={siteSettings.footer_legal_title || 'Bedrijfsgegevens'} table="site_settings" id={0} field="footer_legal_title" />
+            </h4>
             <div className="space-y-4">
               {btw && (
                 <p className="flex items-center gap-2">
-                  <span className="text-slate-500">BTW:</span> 
+                  <span className="text-slate-500">BTW:</span>
                   <EditableText value={btw} table="contact" id={0} field="btw_nummer" />
                 </p>
               )}
@@ -78,7 +82,7 @@ export default function Footer({ data }) {
           <p>&copy; {new Date().getFullYear()} {naam}. Alle rechten voorbehouden.</p>
           <div className="flex items-center gap-2 opacity-50">
             <img src="./athena-icon.svg" alt="Athena Logo" className="w-5 h-5" />
-            <span>Gemaakt met Athena CMS Factory</span>
+            <EditableText value={siteSettings.footer_credit_text || 'Gemaakt met Athena CMS Factory'} table="site_settings" id={0} field="footer_credit_text" />
           </div>
         </div>
       </div>

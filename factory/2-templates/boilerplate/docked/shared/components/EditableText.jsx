@@ -17,14 +17,25 @@ export default function EditableText({ tagName: Tag = 'span', value, children, c
     return null;
   }
 
+  const isObject = typeof actualValue === 'object' && actualValue !== null && !React.isValidElement(actualValue);
   const content = renderValue ? renderValue(actualValue) : (
-    (typeof actualValue === 'object' && actualValue !== null && !React.isValidElement(actualValue)) 
-      ? (actualValue.text || actualValue.title || actualValue.label || JSON.stringify(actualValue)) 
+    isObject
+      ? (actualValue.text || actualValue.title || actualValue.label || JSON.stringify(actualValue))
       : actualValue
   );
 
+  // 2. Individual Styles from Object
+  const individualStyle = isObject ? {
+    color: actualValue.color,
+    fontSize: actualValue.fontSize ? `${actualValue.fontSize}px` : undefined,
+    fontWeight: actualValue.fontWeight,
+    fontStyle: actualValue.fontStyle, // Italic support
+    textAlign: actualValue.textAlign,
+    ...style
+  } : style;
+
   if (!isDev) {
-    return <Tag className={className} style={style} {...props}>{content}</Tag>;
+    return <Tag className={className} style={individualStyle} {...props}>{content}</Tag>;
   }
 
   // Generate binding string for Dock
@@ -39,7 +50,7 @@ export default function EditableText({ tagName: Tag = 'span', value, children, c
       data-dock-bind={dockBind}
       data-dock-type="text"
       className={`${className} cursor-pointer hover:ring-2 hover:ring-blue-400/40 hover:bg-blue-50/5 rounded-sm transition-all duration-200`}
-      style={style}
+      style={individualStyle}
       title={`Shift+Klik om "${binding.key}" te bewerken in de Dock`}
       {...props}
     >

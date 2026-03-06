@@ -1,9 +1,9 @@
 /**
- * ⚓ Athena Dock Connector v6 (Universal - Docked Track)
+ * ⚓ Athena Dock Connector v7 (Universal - Docked Track)
  * Handles communication between the generated site (iframe) and the Athena Dock (parent).
  */
-(function() {
-    console.log("⚓ Athena Dock Connector v6 Active");
+(function () {
+    console.log("⚓ Athena Dock Connector v7 Active");
 
     // --- 1. CONFIGURATION & STATE ---
     let lastKnownData = null;
@@ -15,22 +15,25 @@
 
     // --- 2. THEME MAPPINGS ---
     const themeMappings = {
-        light: {
-            'light_primary_color': ['--color-primary', '--primary-color'],
-            'light_title_color': ['--color-title'],
-            'light_heading_color': ['--color-heading'],
-            'light_accent_color': ['--color-accent'],
-            'light_bg_color': ['--color-background', '--bg-site'],
-            'light_text_color': ['--color-text']
-        },
-        dark: {
-            'dark_primary_color': ['--color-primary'],
-            'dark_title_color': ['--color-title'],
-            'dark_heading_color': ['--color-heading'],
-            'dark_accent_color': ['--color-accent'],
-            'dark_bg_color': ['--color-background', '--bg-site'],
-            'dark_text_color': ['--color-text']
-        }
+        // Universal mappings that apply regardless of current theme prefix
+        'primary_color': ['--color-primary', '--primary-color'],
+        'title_color': ['--color-title'],
+        'heading_color': ['--color-heading'],
+        'accent_color': ['--color-accent'],
+        'button_color': ['--color-button-bg', '--btn-bg', '--color-button'],
+        'card_color': ['--color-card-bg', '--card-bg', '--surface', '--color-surface', '--color-card'],
+        'header_color': ['--color-header-bg', '--nav-bg', '--color-header'],
+        'bg_color': ['--color-background', '--bg-site'],
+        'text_color': ['--color-text'],
+        'global_radius': ['--radius-custom', '--radius-main'],
+        'global_shadow': ['--shadow-main']
+    };
+
+    const globalMappings = {
+        'global_radius': '--radius-custom',
+        'hero_overlay_opacity': '--hero-overlay-opacity',
+        'header_height': '--header-height',
+        'content_top_offset': '--content-top-offset'
     };
 
     // --- 3. SECTION SCANNER ---
@@ -46,7 +49,7 @@
     // --- 4. COMMUNICATION (OUTBOUND) ---
     function notifyDock(fullData = null) {
         if (fullData) lastKnownData = fullData;
-        
+
         const structure = {
             sections: scanSections(),
             layouts: lastKnownData?.layout_settings?.[0] || lastKnownData?.layout_settings || {},
@@ -67,43 +70,149 @@
 
         // Color Update
         if (type === 'DOCK_UPDATE_COLOR') {
-            const isDark = document.documentElement.classList.contains('dark');
+            const root = document.documentElement;
+            const isDark = root.classList.contains('dark');
             const currentTheme = isDark ? 'dark' : 'light';
-            
+
             if (key === 'theme') {
                 if (value === 'dark') {
-                    document.documentElement.classList.add('dark');
-                    document.documentElement.style.colorScheme = 'dark';
+                    root.classList.add('dark');
+                    root.style.colorScheme = 'dark';
                 } else {
-                    document.documentElement.classList.remove('dark');
-                    document.documentElement.style.colorScheme = 'light';
+                    root.classList.remove('dark');
+                    root.style.colorScheme = 'light';
                 }
                 return;
             }
 
+            // Global numeric/string variables
+            if (globalMappings[key]) {
+                const finalVal = (key === 'header_height' || key === 'content_top_offset')
+                    ? `${value}px`
+                    : value;
+                root.style.setProperty(globalMappings[key], finalVal);
+                return;
+            }
+
+            if (key === 'header_transparent') {
+                const transparency = parseFloat(value);
+                if (transparency > 0) {
+                    const opacity = 1 - transparency;
+                    // Try to use RGB version if available
+                    root.style.setProperty('--header-bg', `rgba(var(--color-header-rgb, 255, 255, 255), ${opacity})`);
+                    root.style.setProperty('--header-blur', transparency > 0.5 ? 'none' : 'blur(16px)');
+                    root.style.setProperty('--header-border', 'none');
+                } else {
+                    root.style.removeProperty('--header-bg');
+                    root.style.removeProperty('--header-blur');
+                    root.style.removeProperty('--header-border');
+                }
+                return;
+            }
+
+            if (key === 'header_visible') {
+                const nav = document.querySelector('nav.fixed.top-0');
+                if (nav) nav.style.display = value ? 'flex' : 'none';
+                return;
+            }
+
+            if (key.startsWith('header_show_')) {
+                const elementMap = {
+                    'header_show_logo': '.relative.w-12.h-12',
+                    'header_show_title': 'span.text-2xl.font-serif',
+                    'header_show_tagline': 'span.text-[10px]',
+                    'header_show_button': 'button, .bg-primary'
+                };
+                const selector = elementMap[key];
+                if (selector) {
+                    const els = document.querySelectorAll(selector);
+                    els.forEach(el => el.style.display = value ? '' : 'none');
+                }
+                return;
+            }
+
+            if (key === 'hero_overlay_opacity') {
+                let opacity = parseFloat(value);
+                if (isNaN(opacity)) opacity = 0.8;
+                root.style.setProperty('--hero-overlay-start', `rgba(0, 0, 0, ${opacity})`);
+                root.style.setProperty('--hero-overlay-end', `rgba(0, 0, 0, ${opacity * 0.4})`);
+                return;
+            }
+
+            // Theme-prefixed colors (light_... or dark_...)
             const targetTheme = key.startsWith('dark') ? 'dark' : 'light';
+            const cleanKey = key.replace('light_', '').replace('dark_', '');
+
+            // Apply standard mappings if it matches current theme
+            let finalValue = value;
+            if (cleanKey === 'global_shadow') {
+                if (value === 'soft') finalValue = '0 4px 20px -2px rgba(0, 0, 0, 0.05)';
+                else if (value === 'strong') finalValue = '0 20px 50px -5px rgba(0, 0, 0, 0.15)';
+                else if (value === 'none') finalValue = 'none';
+            }
+
             if (targetTheme === currentTheme) {
-                const vars = themeMappings[currentTheme][key];
+                const vars = themeMappings[cleanKey];
                 if (vars) {
-                    vars.forEach(v => document.documentElement.style.setProperty(v, value));
+                    vars.forEach(v => root.style.setProperty(v, finalValue));
                 }
             }
         }
 
-        // Text Update (Live Preview)
+        // Section Style Update
+        if (type === 'DOCK_UPDATE_SECTION_STYLE') {
+            const el = document.querySelector(`[data-dock-section="${section}"]`);
+            if (el) {
+                el.style[key] = value;
+            }
+        }
+
+        // Style Swap
+        if (type === 'DOCK_SWAP_STYLE') {
+            console.log("🎨 Swapping global style to:", value);
+            setTimeout(() => window.location.reload(), 500);
+        }
+
+        // Text/Link Update
         if (type === 'DOCK_UPDATE_TEXT') {
             const bindStr = JSON.stringify({ file, index, key });
-            const elements = document.querySelectorAll(`[data-dock-bind='${bindStr}']`);
+            const elements = document.querySelectorAll(`[data-dock-bind]`);
             const baseUrl = import.meta.env.BASE_URL || '/';
 
             elements.forEach(el => {
-                if (el.tagName === 'IMG') {
+                const elBind = JSON.parse(el.getAttribute('data-dock-bind'));
+                if (elBind.file !== file || elBind.index !== index || elBind.key !== key) return;
+
+                const dockType = el.getAttribute('data-dock-type') || (el.tagName === 'IMG' || el.tagName === 'VIDEO' ? 'media' : 'text');
+
+                if (dockType === 'media') {
                     const src = (value && !value.startsWith('http') && !value.startsWith('/') && !value.startsWith('data:'))
                         ? `${baseUrl}images/${value}`.replace(/\/+/g, '/')
-                        : value;
-                    el.src = src;
+                        : (value || "");
+
+                    const mediaEl = (el.tagName === 'IMG' || el.tagName === 'VIDEO') ? el : el.querySelector('img, video');
+                    if (mediaEl) {
+                        mediaEl.src = src;
+                    }
+                    if (el.hasAttribute('data-dock-current')) {
+                        el.setAttribute('data-dock-current', value || "");
+                    }
+                } else if (dockType === 'link') {
+                    const { label, url } = (typeof value === 'object' && value !== null) ? value : { label: value, url: "" };
+                    el.innerText = label || "";
+                    el.setAttribute('data-dock-label', label || "");
+                    el.setAttribute('data-dock-url', url || "");
                 } else {
-                    el.innerText = value;
+                    if (typeof value === 'object' && value !== null) {
+                        el.innerText = value.text || "";
+                        if (value.color) el.style.color = value.color;
+                        if (value.fontSize) el.style.fontSize = `${value.fontSize}px`;
+                        if (value.fontWeight) el.style.fontWeight = value.fontWeight;
+                        if (value.fontStyle) el.style.fontStyle = value.fontStyle;
+                        if (value.textAlign) el.style.textAlign = value.textAlign;
+                    } else {
+                        el.innerText = value || "";
+                    }
                 }
             });
         }
@@ -120,14 +229,13 @@
 
     window.athenaScan = notifyDock;
 
-    // --- 7. DRAG & DROP (VIDEOS & IMAGES) ---
+    // --- 7. DRAG & DROP ---
     const isMediaBind = (bind) => {
         if (!bind || !bind.key) return false;
         const k = bind.key.toLowerCase();
         return k.includes('foto') || k.includes('image') || k.includes('img') || k.includes('afbeelding') || k.includes('hero_image') || k.includes('video');
     };
 
-    // Global Drag Tracking
     let dragEnterCount = 0;
     window.addEventListener('dragenter', (e) => {
         dragEnterCount++;
@@ -164,7 +272,7 @@
                 body: file
             });
             const uploadData = await uploadRes.json();
-            
+
             if (uploadData.success) {
                 await fetch(getApiUrl('__athena/update-json'), {
                     method: 'POST',
@@ -180,22 +288,23 @@
     document.addEventListener('click', (e) => {
         const target = e.target.closest('[data-dock-bind]');
         if (target && window.parent !== window) {
-            if (!e.shiftKey) return; // v8: Shift+Click to edit
+            // v8: Shift+Click is nu vereist voor bewerken in de Dock
+            if (!e.shiftKey) return;
 
             e.preventDefault();
             e.stopPropagation();
 
             const binding = JSON.parse(target.getAttribute('data-dock-bind'));
             const dockType = target.getAttribute('data-dock-type') || (
-                (binding.key && (binding.key.toLowerCase().includes('foto') || 
-                                 binding.key.toLowerCase().includes('image') || 
-                                 binding.key.toLowerCase().includes('img') || 
-                                 binding.key.toLowerCase().includes('afbeelding') || 
-                                 binding.key.toLowerCase().includes('video'))) ? 'media' : 'text'
+                (binding.key && (binding.key.toLowerCase().includes('foto') ||
+                    binding.key.toLowerCase().includes('image') ||
+                    binding.key.toLowerCase().includes('img') ||
+                    binding.key.toLowerCase().includes('afbeelding') ||
+                    binding.key.toLowerCase().includes('video'))) ? 'media' : 'text'
             );
 
             let currentValue = target.getAttribute('data-dock-current') || target.innerText;
-            
+
             if (dockType === 'link') {
                 currentValue = {
                     label: target.getAttribute('data-dock-label') || target.innerText,

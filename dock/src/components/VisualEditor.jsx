@@ -4,7 +4,7 @@ const VisualEditor = ({ item, selectedSite, onSave, onCancel, onUpload }) => {
   const labelRef = useRef(null);
   const urlRef = useRef(null);
   const [allSites, setAllSites] = useState([]);
-  
+
   const initialValueData = item.value || item.currentValue || '';
   const dockType = item.dockType || item.dataType || 'text';
   const isLink = dockType === 'link';
@@ -13,8 +13,15 @@ const VisualEditor = ({ item, selectedSite, onSave, onCancel, onUpload }) => {
   const resolvedLabel = typeof initialValueData === 'object' ? (initialValueData.label || '') : initialValueData;
   const resolvedUrl = typeof initialValueData === 'object' ? (initialValueData.url || '') : (item.url || '');
 
-  const [value, setValue] = useState(typeof initialValueData === 'object' ? '' : initialValueData);
+  const [value, setValue] = useState(typeof initialValueData === 'object' ? (initialValueData.text || initialValueData.label || initialValueData.title || '') : initialValueData);
   const [linkData, setLinkData] = useState({ label: resolvedLabel, url: resolvedUrl });
+  const [textStyles, setTextStyles] = useState({
+    color: typeof initialValueData === 'object' ? (initialValueData.color || '') : '',
+    fontSize: typeof initialValueData === 'object' ? (initialValueData.fontSize || '') : '',
+    fontWeight: typeof initialValueData === 'object' ? (initialValueData.fontWeight || 'normal') : 'normal',
+    fontStyle: typeof initialValueData === 'object' ? (initialValueData.fontStyle || 'normal') : 'normal',
+    textAlign: typeof initialValueData === 'object' ? (initialValueData.textAlign || 'left') : 'left'
+  });
 
   // [v33 Debug Bridge]: Luister naar antwoorden van de site
   useEffect(() => {
@@ -22,7 +29,7 @@ const VisualEditor = ({ item, selectedSite, onSave, onCancel, onUpload }) => {
       const { type, key, value: siteValue, fullRow } = event.data;
       if (type === 'SITE_SYNC_RESPONSE') {
         console.log('🏁 [VisualEditor] Received live data from site:', siteValue);
-        
+
         if (isLink) {
           // Als de site een object stuurt, pak de url. Anders check of er een sibling key is.
           let foundUrl = (typeof siteValue === 'object' && siteValue !== null) ? siteValue.url : null;
@@ -60,24 +67,41 @@ const VisualEditor = ({ item, selectedSite, onSave, onCancel, onUpload }) => {
     if (labelRef.current) labelRef.current.value = linkData.label;
     if (urlRef.current) urlRef.current.value = linkData.url;
     if (isLink) fetch('./sites.json').then(r => r.json()).then(d => setAllSites(d));
-    
+
     // Automatische sync-vraag bij openen
     const timer = setTimeout(requestSiteSync, 300);
     return () => clearTimeout(timer);
   }, []);
 
   const handleSave = () => {
-    const finalData = isLink ? {
-      label: labelRef.current ? labelRef.current.value : linkData.label,
-      url: urlRef.current ? urlRef.current.value : linkData.url
-    } : value;
+    let finalData;
+    if (isLink) {
+      finalData = {
+        label: labelRef.current ? labelRef.current.value : linkData.label,
+        url: urlRef.current ? urlRef.current.value : linkData.url
+      };
+    } else if (isMedia) {
+      finalData = value;
+    } else {
+      // Check if we have any active styles
+      const hasStyles = textStyles.color || textStyles.fontSize || textStyles.fontWeight !== 'normal' || textStyles.fontStyle !== 'normal' || textStyles.textAlign !== 'left';
+
+      if (hasStyles) {
+        finalData = {
+          text: value,
+          ...textStyles
+        };
+      } else {
+        finalData = value;
+      }
+    }
     onSave(finalData, {});
   };
 
   const getPreviewUrl = (filename) => {
     if (!filename) return '';
     if (filename.startsWith('http')) return filename;
-    
+
     // Construct URL from selected site
     const baseUrl = selectedSite?.url || '';
     const cleanBase = baseUrl.replace(/\/$/, '');
@@ -127,24 +151,24 @@ const VisualEditor = ({ item, selectedSite, onSave, onCancel, onUpload }) => {
             <>
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase text-slate-400">Button Label</label>
-                <input 
+                <input
                   ref={labelRef}
-                  type="text" 
+                  type="text"
                   defaultValue={linkData.label}
                   className="w-full p-4 bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white font-bold outline-none"
                 />
               </div>
               <div className="space-y-2 relative">
                 <label className="text-[10px] font-black uppercase text-slate-400">URL / Link Target</label>
-                <input 
+                <input
                   ref={urlRef}
-                  type="text" 
+                  type="text"
                   defaultValue={linkData.url}
                   onFocus={requestSiteSync} // DIT IS DE KEY: Vraag bij klik!
                   className="w-full p-4 bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white font-mono text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="#anchor or https://..."
                 />
-                <button 
+                <button
                   onClick={requestSiteSync}
                   className="absolute right-4 bottom-4 text-[10px] text-blue-500 font-bold hover:underline"
                 >
@@ -154,8 +178,8 @@ const VisualEditor = ({ item, selectedSite, onSave, onCancel, onUpload }) => {
               {allSites.length > 0 && (
                 <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
                   <label className="text-[10px] font-black uppercase text-blue-500">Quick Select</label>
-                  <select 
-                    onChange={(e) => { if(urlRef.current) urlRef.current.value = e.target.value; }}
+                  <select
+                    onChange={(e) => { if (urlRef.current) urlRef.current.value = e.target.value; }}
                     className="w-full p-3 bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs outline-none"
                   >
                     <option value="" className="dark:bg-black">-- Kies een site --</option>
@@ -181,20 +205,88 @@ const VisualEditor = ({ item, selectedSite, onSave, onCancel, onUpload }) => {
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] font-black uppercase text-slate-400">Bestandsnaam</label>
-                <input 
-                  type="text" 
-                  value={value} 
-                  onChange={(e) => setValue(e.target.value)} 
-                  className="w-full p-4 bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white font-mono text-xs" 
+                <input
+                  type="text"
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  className="w-full p-4 bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white font-mono text-xs"
                 />
               </div>
             </div>
           ) : (
-            <textarea 
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              className="w-full p-6 bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-700 rounded-2xl min-h-[200px] text-slate-900 dark:text-white resize-none outline-none"
-            />
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-4 p-4 bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-800 rounded-2xl">
+                {/* Color */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-slate-400 block">Color</label>
+                  <input
+                    type="color"
+                    value={textStyles.color || '#000000'}
+                    onChange={(e) => setTextStyles(prev => ({ ...prev, color: e.target.value }))}
+                    className="w-10 h-10 rounded-lg cursor-pointer border border-slate-200 bg-transparent"
+                  />
+                </div>
+
+                {/* Font Size */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-slate-400 block">Size (px)</label>
+                  <input
+                    type="number"
+                    placeholder="Auto"
+                    value={textStyles.fontSize}
+                    onChange={(e) => setTextStyles(prev => ({ ...prev, fontSize: e.target.value }))}
+                    className="w-20 p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs"
+                  />
+                </div>
+
+                {/* Font Style / Weight */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-slate-400 block">Style</label>
+                  <div className="flex bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                    <button
+                      onClick={() => setTextStyles(prev => ({ ...prev, fontWeight: prev.fontWeight === 'bold' ? 'normal' : 'bold' }))}
+                      className={`p-2 text-xs w-8 ${textStyles.fontWeight === 'bold' ? 'bg-blue-500 text-white' : 'hover:bg-slate-100'}`}
+                      title="Bold"
+                    >B</button>
+                    <button
+                      onClick={() => setTextStyles(prev => ({ ...prev, fontStyle: prev.fontStyle === 'italic' ? 'normal' : 'italic' }))}
+                      className={`p-2 text-xs w-8 italic ${textStyles.fontStyle === 'italic' ? 'bg-blue-500 text-white' : 'hover:bg-slate-100'}`}
+                      title="Italic"
+                    >I</button>
+                  </div>
+                </div>
+
+                {/* Alignment */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-slate-400 block">Align</label>
+                  <div className="flex bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                    {['left', 'center', 'right'].map(align => (
+                      <button
+                        key={align}
+                        onClick={() => setTextStyles(prev => ({ ...prev, textAlign: align }))}
+                        className={`p-2 text-xs w-8 ${textStyles.textAlign === align ? 'bg-blue-500 text-white' : 'hover:bg-slate-100'}`}
+                        title={align.charAt(0).toUpperCase() + align.slice(1)}
+                      >
+                        <i className={`fa-solid fa-align-${align}`}></i>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <textarea
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                className="w-full p-6 bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-700 rounded-2xl min-h-[200px] text-slate-900 dark:text-white resize-none outline-none focus:ring-2 focus:ring-blue-500"
+                style={{
+                  color: textStyles.color,
+                  fontSize: textStyles.fontSize ? `${textStyles.fontSize}px` : undefined,
+                  fontWeight: textStyles.fontWeight,
+                  fontStyle: textStyles.fontStyle,
+                  textAlign: textStyles.textAlign
+                }}
+              />
+            </div>
           )}
         </div>
 

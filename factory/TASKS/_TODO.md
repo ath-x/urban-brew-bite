@@ -28,7 +28,9 @@
 
 ## 🎨 UI/UX (Dock)
 - [x] Implement a robust Undo/Redo history engine.
-- [x] **Hero & Dock Interaction (v7.8.5)** (Completed)
+- [x] **Hero & Dock Interaction & Transparency Slider (v8.3)** (Completed)
+- [x] **Individual Text Styling (v8.3)** (Completed)
+- [x] **Footer Editability (v8.3)** (Completed)
 - [ ] Develop a "Visual Component Library" for real-time section management.
 
 ## 🏗️ Infrastructure & Scalability

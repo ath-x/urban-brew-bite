@@ -1,1 +1,16 @@
-{}
+{
+  "5002": {
+    "pid": 19523,
+    "id": "athena-dock",
+    "type": "dock",
+    "startTime": "2026-03-06T21:04:14.028Z",
+    "logFile": "/home/kareltestspecial/0-IT/2-Productie/athena/athena-x/factory/output/logs/athena-dock-dock.log"
+  },
+  "6102": {
+    "pid": 20391,
+    "id": "de-salon-site",
+    "type": "preview",
+    "startTime": "2026-03-06T21:04:39.639Z",
+    "logFile": "/home/kareltestspecial/0-IT/2-Productie/athena/athena-x/factory/output/logs/de-salon-site-preview.log"
+  }
+}

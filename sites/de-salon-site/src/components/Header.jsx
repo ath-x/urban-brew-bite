@@ -8,27 +8,30 @@ import EditableMedia from './EditableMedia';
  */
 function Header({ primaryTable, tableName, siteSettings = {}, navData = [] }) {
   const info = Array.isArray(primaryTable) ? (primaryTable[0] || {}) : (primaryTable || {});
-  
+
   // Ensure siteSettings is treated as an object (might be array from JSON)
   const settings = Array.isArray(siteSettings) ? (siteSettings[0] || {}) : siteSettings;
-  
+
   // Look for fields in primary table for fallbacks
   const keys = Object.keys(info);
   const fallbackTitleKey = keys.find(k => /naam|titel|header|kop|bedrijfsnaam/i.test(k)) || keys[0];
   const fallbackTaglineKey = keys.find(k => /slogan|tagline|ondertitel|subtitle/i.test(k));
-  
+
   // Values: Site Settings > Primary Table > Default
-  const title = settings.title || info[fallbackTitleKey] || 'Welcome';
-  const tagline = settings.tagline || (fallbackTaglineKey ? info[fallbackTaglineKey] : '');
+  const rawTitle = settings.title || info[fallbackTitleKey] || 'Welcome';
+  const rawTagline = settings.tagline || (fallbackTaglineKey ? info[fallbackTaglineKey] : '');
+
+  const title = (typeof rawTitle === 'object' && rawTitle !== null) ? (rawTitle.text || rawTitle.title || 'Welcome') : rawTitle;
+  const tagline = (typeof rawTagline === 'object' && rawTagline !== null) ? (rawTagline.text || rawTagline.title || '') : rawTagline;
 
   const sortedNav = [...navData].sort((a, b) => (a.menu_positie || 0) - (b.menu_positie || 0));
 
   return (
     <>
       {/* Fixed Sticky Navigation Bar */}
-      <nav 
+      <nav
         className="fixed top-0 left-0 right-0 z-[1000] w-full px-8 py-4 flex items-center justify-between border-b transition-all duration-300"
-        style={{ 
+        style={{
           backgroundColor: 'var(--header-bg, var(--color-header, rgba(var(--color-primary-rgb), 0.6)))',
           backdropFilter: 'var(--header-blur, blur(12px))',
           borderColor: 'var(--header-border, rgba(255,255,255,0.1))'
@@ -37,7 +40,7 @@ function Header({ primaryTable, tableName, siteSettings = {}, navData = [] }) {
         <div className="flex items-center gap-4">
           {settings.site_logo_image ? (
             <div className="w-10 h-10 overflow-hidden">
-              <EditableMedia 
+              <EditableMedia
                 src={settings.site_logo_image}
                 className="w-full h-full object-contain"
                 cmsBind={{ file: 'site_settings', index: 0, key: 'site_logo_image' }}
@@ -48,9 +51,9 @@ function Header({ primaryTable, tableName, siteSettings = {}, navData = [] }) {
               <i className="fa-solid fa-scissors text-white"></i>
             </div>
           )}
-          <EditableText 
+          <EditableText
             tagName="span"
-            value={title}
+            value={rawTitle}
             className="font-serif font-bold text-xl tracking-tighter uppercase"
             table="basisgegevens"
             id={0}
@@ -60,14 +63,14 @@ function Header({ primaryTable, tableName, siteSettings = {}, navData = [] }) {
 
         <div className="hidden md:flex items-center gap-8">
           {sortedNav.map((item, idx) => (
-            <a 
-              key={idx} 
-              href={`#${item.slug}`} 
+            <a
+              key={idx}
+              href={`#${item.slug}`}
               className={`text-xs font-bold uppercase tracking-widest transition-colors hover:text-accent ${item.is_call_to_action ? 'px-5 py-2 bg-accent text-white rounded-full shadow-lg shadow-accent/20' : 'text-white/70'}`}
             >
-              <EditableText 
-                value={item.titel_navigatie} 
-                cmsBind={{ file: 'paginastructuur', index: idx, key: 'titel_navigatie' }} 
+              <EditableText
+                value={item.titel_navigatie}
+                cmsBind={{ file: 'paginastructuur', index: idx, key: 'titel_navigatie' }}
               />
             </a>
           ))}
@@ -78,7 +81,7 @@ function Header({ primaryTable, tableName, siteSettings = {}, navData = [] }) {
       <header id="home" className="relative min-h-[85vh] flex flex-col overflow-hidden bg-primary text-white pt-20">
         {/* Background Media */}
         <div className="absolute inset-0">
-          <EditableMedia 
+          <EditableMedia
             src={settings.hero_image}
             alt={title}
             className="w-full h-full"
@@ -87,34 +90,34 @@ function Header({ primaryTable, tableName, siteSettings = {}, navData = [] }) {
             data-dock-bind={JSON.stringify({ file: 'site_settings', index: 0, key: 'hero_image' })}
           />
           {/* Dynamic Gradient Overlay */}
-          <div 
+          <div
             className="absolute inset-0 z-10"
-            style={{ 
-              background: `linear-gradient(to bottom, var(--hero-overlay-start, rgba(0,0,0,0.8)), var(--hero-overlay-end, rgba(0,0,0,0.3)))` 
+            style={{
+              background: `linear-gradient(to bottom, var(--hero-overlay-start, rgba(0,0,0,0.8)), var(--hero-overlay-end, rgba(0,0,0,0.3)))`
             }}
           ></div>
         </div>
 
         <div className="flex-1 flex items-center justify-center text-center px-6 relative z-20">
           <div className="relative z-10 max-w-4xl mx-auto reveal">
-            <EditableText 
+            <EditableText
               tagName="h1"
-              value={title}
-              className="text-5xl md:text-7xl lg:text-9xl mb-8 font-serif font-bold text-[var(--color-title)] leading-tight" 
+              value={rawTitle}
+              className="text-5xl md:text-7xl lg:text-9xl mb-8 font-serif font-bold text-[var(--color-title)] leading-tight"
               cmsBind={{ file: 'site_settings', index: 0, key: 'title' }}
             />
-            
+
             {tagline && (
-              <EditableText 
+              <EditableText
                 tagName="p"
-                value={tagline}
+                value={rawTagline}
                 className="text-xl md:text-3xl font-light text-white/80 mb-12 max-w-2xl mx-auto leading-relaxed italic"
                 cmsBind={{ file: 'site_settings', index: 0, key: 'tagline' }}
               />
             )}
             <div className="flex gap-6 justify-center">
-               <a href="#diensten_tarieven" className="btn-primary px-10 py-5 text-lg">Onze Diensten</a>
-               <a href="#basisgegevens" className="px-10 py-5 border-2 border-white/30 rounded-full font-bold hover:bg-white hover:text-primary transition-all">Contact</a>
+              <a href="#diensten_tarieven" className="btn-primary px-10 py-5 text-lg">Onze Diensten</a>
+              <a href="#basisgegevens" className="px-10 py-5 border-2 border-white/30 rounded-full font-bold hover:bg-white hover:text-primary transition-all">Contact</a>
             </div>
           </div>
         </div>

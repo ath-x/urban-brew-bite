@@ -1,35 +1,70 @@
 [
   {
     "pagina_id": 1,
-    "titel_navigatie": "Home",
+    "titel_navigatie": {
+      "text": "HOME",
+      "color": "#7d3636",
+      "fontSize": "",
+      "fontWeight": "normal",
+      "fontStyle": "normal",
+      "textAlign": "left"
+    },
     "slug": "home",
     "menu_positie": 1,
     "is_call_to_action": false
   },
   {
     "pagina_id": 2,
-    "titel_navigatie": "Tarieven",
+    "titel_navigatie": {
+      "text": "TARIEVEN",
+      "color": "#8c4040",
+      "fontSize": "",
+      "fontWeight": "normal",
+      "fontStyle": "normal",
+      "textAlign": "left"
+    },
     "slug": "diensten_tarieven",
     "menu_positie": 2,
     "is_call_to_action": false
   },
   {
     "pagina_id": 3,
-    "titel_navigatie": "Team",
+    "titel_navigatie": {
+      "text": "TEAM",
+      "color": "#7e3e3e",
+      "fontSize": "",
+      "fontWeight": "normal",
+      "fontStyle": "normal",
+      "textAlign": "left"
+    },
     "slug": "teamleden",
     "menu_positie": 3,
     "is_call_to_action": false
   },
   {
     "pagina_id": 4,
-    "titel_navigatie": "Aveda",
+    "titel_navigatie": {
+      "text": "AVEDA",
+      "color": "#814646",
+      "fontSize": "",
+      "fontWeight": "normal",
+      "fontStyle": "normal",
+      "textAlign": "left"
+    },
     "slug": "aveda_informatie",
     "menu_positie": 4,
     "is_call_to_action": false
   },
   {
     "pagina_id": 5,
-    "titel_navigatie": "Locaties",
+    "titel_navigatie": {
+      "text": "LOCATIES",
+      "color": "#8c4f4f",
+      "fontSize": "",
+      "fontWeight": "normal",
+      "fontStyle": "normal",
+      "textAlign": "left"
+    },
     "slug": "locaties",
     "menu_positie": 5,
     "is_call_to_action": false

@@ -25,13 +25,13 @@ function Header({ siteSettings = {} }) {
 
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-[1000] border-b border-white/10 px-6 transition-all duration-500 flex items-center"
+      className="fixed top-0 left-0 right-0 z-[1000] px-6 transition-all duration-500 flex items-center"
       style={{
         display: settings.header_visible === false ? 'none' : 'flex',
         backgroundColor: 'var(--header-bg, var(--color-header-bg, rgba(255,255,255,0.9)))',
         backdropFilter: 'var(--header-blur, blur(16px))',
         height: 'var(--header-height, 80px)',
-        borderBottom: 'var(--header-border, 1px solid rgba(255,255,255,0.1))'
+        borderBottom: 'var(--header-border, none)'
       }}
     >
       <div className="max-w-7xl mx-auto w-full flex justify-between items-center">

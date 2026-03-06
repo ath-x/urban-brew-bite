@@ -7,7 +7,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 export default function DesignControls({ onColorChange, siteStructure }) {
   // Lock mechanism to prevent slider jump-back
   const lastInteractionTime = useRef(0);
-  
+
   const [localColors, setLocalColors] = useState({
     // ... rest of state
     content_top_offset: 0,
@@ -16,7 +16,8 @@ export default function DesignControls({ onColorChange, siteStructure }) {
 
   // NEW: Dedicated local state for high-frequency sliders to prevent jump-back
   const [sliderValues, setSliderValues] = useState({
-    content_top_offset: 0
+    content_top_offset: 0,
+    header_height: 80
   });
 
   // Sync met de werkelijke data van de site bij het laden of switchen
@@ -42,7 +43,8 @@ export default function DesignControls({ onColorChange, siteStructure }) {
       // Also sync our decoupled slider values if not currently dragging
       setSliderValues(prev => ({
         ...prev,
-        content_top_offset: settings.content_top_offset || 0
+        content_top_offset: settings.content_top_offset || 0,
+        header_height: settings.header_height || 80
       }));
     }
   }, [siteStructure]);
@@ -52,7 +54,7 @@ export default function DesignControls({ onColorChange, siteStructure }) {
     lastInteractionTime.current = Date.now(); // LOCK ACTIVEREN
 
     // Update decoupled state immediately for smoothness
-    if (key === 'content_top_offset') {
+    if (key === 'content_top_offset' || key === 'header_height') {
       setSliderValues(prev => ({ ...prev, [key]: value }));
     }
 
@@ -65,22 +67,22 @@ export default function DesignControls({ onColorChange, siteStructure }) {
         onColorChange('theme', newState.theme, false);
         Object.keys(newState).forEach(k => {
           if (k.startsWith(modePrefix) || k.startsWith('global_') || k.startsWith('header_') || k === 'content_top_offset' || k === 'hero_overlay_opacity') {
-             // NEW: If it's a color, also generate and send the RGB variant
-             if (newState[k] && typeof newState[k] === 'string' && newState[k].startsWith('#')) {
-                const rgb = hexToRgb(newState[k]);
-                // Map local key to the actual CSS variable name
-                const cssVar = k.replace('light_', '--color-').replace('dark_', '--color-').replace('_color', '');
-                onColorChange(`${cssVar}-rgb`, rgb, false);
-             }
-             onColorChange(k, newState[k], false);
+            // NEW: If it's a color, also generate and send the RGB variant
+            if (newState[k] && typeof newState[k] === 'string' && newState[k].startsWith('#')) {
+              const rgb = hexToRgb(newState[k]);
+              // Map local key to the actual CSS variable name
+              const cssVar = k.replace('light_', '--color-').replace('dark_', '--color-').replace('_color', '');
+              onColorChange(`${cssVar}-rgb`, rgb, false);
+            }
+            onColorChange(k, newState[k], false);
           }
         });
       } else {
         // Handle single color change
         if (value && typeof value === 'string' && value.startsWith('#')) {
-           const rgb = hexToRgb(value);
-           const cssVar = key.replace('light_', '--color-').replace('dark_', '--color-').replace('_color', '');
-           onColorChange(`${cssVar}-rgb`, rgb, false);
+          const rgb = hexToRgb(value);
+          const cssVar = key.replace('light_', '--color-').replace('dark_', '--color-').replace('_color', '');
+          onColorChange(`${cssVar}-rgb`, rgb, false);
         }
         onColorChange(key, value, false);
       }
@@ -109,16 +111,16 @@ export default function DesignControls({ onColorChange, siteStructure }) {
   // Save mode (persistent)
   const handleSave = (key, value) => {
     lastInteractionTime.current = Date.now(); // LOCK ACTIVEREN
-    
+
     // Update local state immediately to keep UI in sync
     setLocalColors(prev => ({ ...prev, [key]: value }));
-    
+
     onColorChange(key, value, true);
     // Also save RGB variant if color
     if (value && typeof value === 'string' && value.startsWith('#')) {
-       const rgb = hexToRgb(value);
-       const cssVar = key.replace('light_', '--color-').replace('dark_', '--color-').replace('_color', '');
-       onColorChange(`${cssVar}-rgb`, rgb, true);
+      const rgb = hexToRgb(value);
+      const cssVar = key.replace('light_', '--color-').replace('dark_', '--color-').replace('_color', '');
+      onColorChange(`${cssVar}-rgb`, rgb, true);
     }
   };
 
@@ -172,9 +174,10 @@ export default function DesignControls({ onColorChange, siteStructure }) {
       const payload = {
         file: 'site_settings',
         index: 0,
-        data: { 
-          ...filteredData, 
-          content_top_offset: sliderValues.content_top_offset 
+        data: {
+          ...filteredData,
+          content_top_offset: sliderValues.content_top_offset,
+          header_height: sliderValues.header_height
         }
       };
 
@@ -212,8 +215,8 @@ export default function DesignControls({ onColorChange, siteStructure }) {
       <div className="mb-6">
         <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">Design Editor</h3>
         <p className="text-xs text-slate-500 mt-1 mb-4">Live design updates via Dock</p>
-        
-        <button 
+
+        <button
           id="save-to-disk-btn"
           onClick={handleSaveToDisk}
           className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
@@ -226,18 +229,24 @@ export default function DesignControls({ onColorChange, siteStructure }) {
         {/* GLOBAL STYLE */}
         <div>
           <label className="text-[10px] font-bold uppercase text-slate-400 block mb-3">Global Theme Stijl</label>
-          <div className="grid grid-cols-1 gap-2">
+          <select
+            onChange={(e) => handleStyleChange(e.target.value)}
+            className="w-full text-xs p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none cursor-pointer"
+            style={{
+              backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\' /%3E%3C/svg%3E")',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 1rem center',
+              backgroundSize: '1rem'
+            }}
+            defaultValue=""
+          >
+            <option value="" disabled>Selecteer een stijl...</option>
             {['modern.css', 'classic.css', 'modern-dark.css', 'bold.css', 'corporate.css', 'warm.css'].map(style => (
-              <button
-                key={style}
-                onClick={() => handleStyleChange(style)}
-                className="flex items-center justify-between px-4 py-2 bg-slate-50 hover:bg-slate-100 rounded-lg text-xs font-bold text-slate-600 transition-colors border border-slate-200"
-              >
-                {style.replace('.css', '').toUpperCase()}
-                <i className="fa-solid fa-palette text-slate-300"></i>
-              </button>
+              <option key={style} value={style}>
+                🎨 {style.replace('.css', '').toUpperCase()}
+              </option>
             ))}
-          </div>
+          </select>
         </div>
 
         {/* GLOBAL THEME SETTINGS */}
@@ -306,27 +315,34 @@ export default function DesignControls({ onColorChange, siteStructure }) {
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <label className="text-[9px] font-bold uppercase text-slate-400">Transparent Background</label>
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-[9px] font-bold uppercase text-slate-400 block">Header Transparency</label>
+                  <span className="text-[9px] font-bold text-blue-500">{((parseFloat(localColors.header_transparent) || 0) * 100).toFixed(0)}%</span>
+                </div>
                 <input
-                  type="checkbox"
-                  checked={localColors.header_transparent === true}
-                  onChange={(e) => { handlePreview('header_transparent', e.target.checked); handleSave('header_transparent', e.target.checked); }}
-                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={localColors.header_transparent || 0}
+                  onInput={(e) => handlePreview('header_transparent', e.target.value)}
+                  onChange={(e) => handleSave('header_transparent', e.target.value)}
+                  className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                 />
               </div>
 
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-[9px] font-bold uppercase text-slate-400 block">Header Height</label>
-                  <span className="text-[9px] font-bold text-blue-500">{localColors.header_height || 80}px</span>
+                  <span className="text-[9px] font-bold text-blue-500">{sliderValues.header_height || 80}px</span>
                 </div>
                 <input
                   type="range"
                   min="40"
                   max="150"
                   step="1"
-                  value={localColors.header_height || 80}
+                  value={sliderValues.header_height || 80}
                   onInput={(e) => handlePreview('header_height', e.target.value)}
                   onChange={(e) => handleSave('header_height', e.target.value)}
                   className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"

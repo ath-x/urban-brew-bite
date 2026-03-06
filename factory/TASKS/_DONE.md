@@ -1,5 +1,21 @@
 # ✅ DONE - Athena CMS
 
+## Enhanced Design Interaction & Text Styling v8.3 - 2026-03-06
+- [x] **Universal Header Transparency Slider**
+    - Traploze slider (0-100%) toegevoegd aan de Dock sidebar.
+    - Dynamische RGBA berekening in de site-engine voor naadloze kleurmenging.
+    - Automatische verwijdering van de header-onderlijn bij transparantie.
+- [x] **Individual Text Style Editor**
+    - Uitbreiding van de Visual Editor met kleurkiezer, lettergrootte, dikte, stijl en uitlijning.
+    - Ondersteuning voor complexe tekst-objecten in de JSON-data.
+- [x] **Full Footer Editability**
+    - Alle voorheen statische velden in de Footer (titels, KVK gegevens, copyright en credits) zijn nu bewerkbaar via `EditableText`.
+- [x] **UI Polish: Theme Dropdown**
+    - "Global Theme Stijl" selector omgezet van buttons naar een premium dropdown menu.
+- [x] **Header Interaction Stability**
+    - Fix voor de 'jump-back' issue bij de header-hoogte slider via verbeterde state-locking in de Dock.
+
+
 ## Site Reviewer & Stability Engine v8.0.5 - 2026-03-02
 - [x] **Athena Site Reviewer Implementation**
     - Ontwikkeld van een interactieve `reviewer.html` interface in het Dashboard.

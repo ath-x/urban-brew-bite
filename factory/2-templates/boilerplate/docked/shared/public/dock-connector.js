@@ -87,17 +87,20 @@
 
             // Global numeric/string variables
             if (globalMappings[key]) {
-                const finalVal = (key === 'header_height' || key === 'content_top_offset') 
-                    ? `${value}px` 
+                const finalVal = (key === 'header_height' || key === 'content_top_offset')
+                    ? `${value}px`
                     : value;
                 root.style.setProperty(globalMappings[key], finalVal);
                 return;
             }
 
             if (key === 'header_transparent') {
-                if (value === true) {
-                    root.style.setProperty('--header-bg', 'transparent');
-                    root.style.setProperty('--header-blur', 'none');
+                const transparency = parseFloat(value);
+                if (transparency > 0) {
+                    const opacity = 1 - transparency;
+                    // Try to use RGB version if available
+                    root.style.setProperty('--header-bg', `rgba(var(--color-header-rgb, 255, 255, 255), ${opacity})`);
+                    root.style.setProperty('--header-blur', transparency > 0.5 ? 'none' : 'blur(16px)');
                     root.style.setProperty('--header-border', 'none');
                 } else {
                     root.style.removeProperty('--header-bg');
@@ -139,7 +142,7 @@
             // Theme-prefixed colors (light_... or dark_...)
             const targetTheme = key.startsWith('dark') ? 'dark' : 'light';
             const cleanKey = key.replace('light_', '').replace('dark_', '');
-            
+
             // Apply standard mappings if it matches current theme
             let finalValue = value;
             if (cleanKey === 'global_shadow') {
@@ -200,7 +203,16 @@
                     el.setAttribute('data-dock-label', label || "");
                     el.setAttribute('data-dock-url', url || "");
                 } else {
-                    el.innerText = value || "";
+                    if (typeof value === 'object' && value !== null) {
+                        el.innerText = value.text || "";
+                        if (value.color) el.style.color = value.color;
+                        if (value.fontSize) el.style.fontSize = `${value.fontSize}px`;
+                        if (value.fontWeight) el.style.fontWeight = value.fontWeight;
+                        if (value.fontStyle) el.style.fontStyle = value.fontStyle;
+                        if (value.textAlign) el.style.textAlign = value.textAlign;
+                    } else {
+                        el.innerText = value || "";
+                    }
                 }
             });
         }
