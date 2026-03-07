@@ -28,16 +28,24 @@ async function init() {
     data['display_config'] = getData('display_config') || { sections: {} };
     data['style_bindings'] = getData('style_bindings') || {};
     
-    // Data-secties laden
-    for (const sectionName of data['section_order']) {
-        const sectionData = getData(sectionName);
-        if (sectionData) {
-            data[sectionName] = Array.isArray(sectionData) ? sectionData : [sectionData];
-            totalRows += Array.isArray(sectionData) ? sectionData.length : 1;
-        } else {
-            data[sectionName] = []; 
+    // 🔥 Dynamisch ALLE JSON bestanden laden in het data object
+    Object.keys(dataModules).forEach(path => {
+        const name = path.split('/').pop().replace('.json', '');
+        const content = dataModules[path].default;
+        
+        // Alleen laden als het nog niet geladen is als systeembestand
+        if (!data[name]) {
+            data[name] = Array.isArray(content) ? content : [content];
+        } else if (Array.isArray(data[name]) && data[name].length === 0 && content) {
+            // Als het al als lege lijst staat (door een eerdere toekenning), vul het aan
+            data[name] = Array.isArray(content) ? content : [content];
         }
-    }
+    });
+
+    // Statistieken bijhouden
+    Object.keys(data).forEach(k => {
+        if (Array.isArray(data[k])) totalRows += data[k].length;
+    });
 
     if (window.athenaScan) {
         window.athenaScan(data);

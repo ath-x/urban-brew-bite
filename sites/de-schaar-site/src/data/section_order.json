@@ -1,12 +1,13 @@
 [
-  "basis",
-  "locaties",
+  "missie",
+  "footer",
+  "locatie",
   "stylist_gradatie",
-  "teamleden",
-  "diensten_hoofdgroepen",
-  "diensten_tarieven",
+  "team",
+  "tarieven",
   "testimonials",
-  "aveda_informatie",
+  "aveda",
+  "diensten_hoofdgroepen",
   "social_media",
   "paginastructuur"
 ]
