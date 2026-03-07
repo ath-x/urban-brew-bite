@@ -16,7 +16,7 @@ const __dirname = path.dirname(__filename);
 // --- EXPORTED LOGIC ---
 export async function deployProject(selectedProject, commitMsg = "Deploy update") {
     const root = path.resolve(__dirname, '..');
-    const projectDir = path.resolve(root, '../sites', selectedProject);
+    const projectDir = path.resolve(root, '../../sites', selectedProject);
     const { GITHUB_USER, GITHUB_PAT, GITHUB_ORG, GITHUB_SSH_HOST } = process.env;
     const ORG = GITHUB_ORG || GITHUB_USER;
     const SSH_HOST = GITHUB_SSH_HOST || "github.com";
@@ -25,15 +25,65 @@ export async function deployProject(selectedProject, commitMsg = "Deploy update"
         throw new Error("GITHUB_USER en GITHUB_PAT moeten zijn ingesteld in .env.");
     }
 
-    // --- SELF-HEALING: DEPENDENCIES ---
-    if (!fs.existsSync(path.join(projectDir, 'node_modules'))) {
-        console.log(`   💊 Self-Healing: node_modules ontbreekt. Installeren...`);
+    // --- DETECT MONOREPO ---
+    const monorepoRoot = path.resolve(projectDir, '../..');
+    const isMonorepo = fs.existsSync(path.join(monorepoRoot, '.git'));
+
+    if (isMonorepo) {
+        console.log(`   🏗️  Monorepo-modus gedetecteerd (Root: ${monorepoRoot})`);
+        
+        // 1. Site-specifieke voorbereiding (nog steeds nuttig voor de subtree repo)
+        const readmePath = path.join(projectDir, 'README.md');
+        const deployUrl = `https://${ORG}.github.io/${selectedProject}/`;
+        const newReadme = `# ${selectedProject}\n\n🚀 **Live Site:** [${deployUrl}](${deployUrl})\n\n---\nBuilt with **Athena CMS Factory** (Monorepo Workflow).`;
+        fs.writeFileSync(readmePath, newReadme);
+
+        const viteConfigPath = path.join(projectDir, 'vite.config.js');
+        if (fs.existsSync(viteConfigPath)) {
+            let viteConfig = fs.readFileSync(viteConfigPath, 'utf8');
+            const baseRegex = /base:\s*['"][^'"]*['"]|base:\s*process\.env\.NODE_ENV\s*===\s*.*?\?\s*.*?\/.*?:\s*['"]\/['"]/;
+            const newBase = `base: process.env.NODE_ENV === 'production' ? '/${selectedProject}/' : '/'`;
+            if (!viteConfig.includes(newBase)) {
+                if (baseRegex.test(viteConfig)) viteConfig = viteConfig.replace(baseRegex, newBase);
+                else viteConfig = viteConfig.replace('defineConfig({', `defineConfig({\n  ${newBase},`);
+                fs.writeFileSync(viteConfigPath, viteConfig);
+            }
+        }
+
+        // 2. Monorepo Commit & Push
         try {
-            execSync('pnpm install --child-concurrency 1', { cwd: projectDir, stdio: 'inherit' });
+            console.log(`   📦 Wijzigingen toevoegen aan monorepo...`);
+            execSync('git add .', { cwd: monorepoRoot, stdio: 'pipe' });
+            
+            const status = execSync('git status --porcelain', { cwd: monorepoRoot, encoding: 'utf8' });
+            
+            if (status.trim() !== "") {
+                console.log(`   📝 Committen naar monorepo: "${commitMsg}"...`);
+                execSync(`git commit -m "${commitMsg}"`, { cwd: monorepoRoot, stdio: 'pipe' });
+                
+                console.log(`   📤 Pushen naar monorepo (origin main)...`);
+                // We gebruiken de SSH alias van de monorepo indien ingesteld, anders standaard origin
+                execSync(`git push origin main`, { cwd: monorepoRoot, stdio: 'pipe' });
+                console.log(`   ✅ Monorepo push voltooid.`);
+            } else {
+                console.log(`   ℹ️ Geen wijzigingen gevonden in de monorepo.`);
+            }
+
+            return {
+                success: true,
+                repoUrl: `https://github.com/${ORG}/athena-x`,
+                liveUrl: deployUrl,
+                status: 'pushed'
+            };
         } catch (e) {
-            console.warn("   ⚠️  Kon dependencies niet installeren. Deployment gaat door, maar de site werkt mogelijk niet lokaal.");
+            const stderr = e.stderr ? e.stderr.toString() : e.message;
+            console.error(`   ❌ Monorepo push mislukt: ${stderr}`);
+            throw new Error(`Monorepo push failed: ${stderr}`);
         }
     }
+
+    // --- STANDALONE MODUS (Oud gedrag voor losse projecten) ---
+    console.log(`   📂 Standalone-modus (geen monorepo gedetecteerd)`);
 
     // --- STAP 1: GIT INIT & CONFIG ---
     if (!fs.existsSync(path.join(projectDir, '.git'))) {
@@ -41,175 +91,77 @@ export async function deployProject(selectedProject, commitMsg = "Deploy update"
         execSync('git init', { cwd: projectDir, stdio: 'pipe' });
     }
 
-    // Stel lokale git config in voor deze site
     console.log(`   👤 Instellen auteur: ${GITHUB_USER} <${GITHUB_USER}@gmail.com>`);
     execSync(`git config user.name "${GITHUB_USER}"`, { cwd: projectDir, stdio: 'pipe' });
     execSync(`git config user.email "${GITHUB_USER}@gmail.com"`, { cwd: projectDir, stdio: 'pipe' });
 
     const repoName = selectedProject;
-    
-    // --- STAP 2: UPDATE README ---
     const readmePath = path.join(projectDir, 'README.md');
     const deployUrl = `https://${ORG}.github.io/${repoName}/`;
-    const newReadme = `# ${selectedProject}\n\n🚀 **Live Site:** [${deployUrl}](${deployUrl})\n\n---\nBuilt with **Athena CMS Factory** (MPA Engine).`;
-    
+    const newReadme = `# ${selectedProject}\n\n🚀 **Live Site:** [${deployUrl}](${deployUrl})\n\n---\nBuilt with **Athena CMS Factory** (Standalone).`;
     fs.writeFileSync(readmePath, newReadme);
-    console.log(`   📝 README.md bijgewerkt met URL: ${deployUrl}`);
 
-    // --- STAP 3: UPDATE VITE CONFIG ---
     const viteConfigPath = path.join(projectDir, 'vite.config.js');
     if (fs.existsSync(viteConfigPath)) {
         let viteConfig = fs.readFileSync(viteConfigPath, 'utf8');
         const baseRegex = /base:\s*['"][^'"]*['"]|base:\s*process\.env\.NODE_ENV\s*===\s*.*?\?\s*.*?\/.*?:\s*['"]\/['"]/;
         const newBase = `base: process.env.NODE_ENV === 'production' ? '/${repoName}/' : '/'`;
-        
         if (!viteConfig.includes(newBase)) {
-            if (baseRegex.test(viteConfig)) {
-                viteConfig = viteConfig.replace(baseRegex, newBase);
-            } else {
-                viteConfig = viteConfig.replace('defineConfig({', `defineConfig({\n  ${newBase},`);
-            }
+            if (baseRegex.test(viteConfig)) viteConfig = viteConfig.replace(baseRegex, newBase);
+            else viteConfig = viteConfig.replace('defineConfig({', `defineConfig({\n  ${newBase},`);
             fs.writeFileSync(viteConfigPath, viteConfig);
         }
     }
 
-    // --- STAP 4: COMMIT WIJZIGINGEN ---
     try {
-        // Controleer of we op een geldige branch zitten (bv. main of master)
         let hasBranch = false;
         try {
             execSync('git rev-parse --verify HEAD', { cwd: projectDir, stdio: 'ignore' });
             hasBranch = true;
-        } catch (e) {
-            console.log("   ℹ️  Nog geen commits gevonden (lege repo).");
-        }
+        } catch (e) {}
 
         const status = execSync('git status --porcelain', { cwd: projectDir, encoding: 'utf8' });
-        
         if (!hasBranch || status.trim() !== "") {
-            console.log("   📦 Wijzigingen committen...");
             execSync('git add .', { cwd: projectDir, stdio: 'pipe' });
-            // Gebruik -a om zeker te zijn, hoewel git add . al is gedaan
             execSync(`git commit -m "${hasBranch ? commitMsg : 'feat: initial commit'}"`, { cwd: projectDir, stdio: 'pipe' });
-            
-            // Zorg dat we op 'main' zitten
-            if (!hasBranch) {
-                execSync('git branch -M main', { cwd: projectDir, stdio: 'pipe' });
-            }
-            console.log("   ✅ Wijzigingen gecommit.");
-        } else {
-            console.log("   ℹ️  Geen wijzigingen om te committen.");
+            if (!hasBranch) execSync('git branch -M main', { cwd: projectDir, stdio: 'pipe' });
         }
     } catch (e) {
-        console.error("   ❌ Fout tijdens git commit:", e.message);
         throw new Error(`Git commit failed: ${e.message}`);
     }
 
-    // --- STAP 5: GITHUB CREATE/PUSH ---
-    const showSuccess = () => {
-        const deployInfo = {
-            deployedAt: new Date().toISOString(),
-            repoUrl: `https://github.com/${ORG}/${repoName}`,
-            liveUrl: `https://${ORG}.github.io/${repoName}`,
-            status: 'live'
-        };
-        const settingsDir = path.join(projectDir, 'project-settings');
-        if (!fs.existsSync(settingsDir)) fs.mkdirSync(settingsDir, { recursive: true });
-        fs.writeFileSync(path.join(settingsDir, 'deployment.json'), JSON.stringify(deployInfo, null, 2));
-
-
-
-        return {
-            success: true,
-            ...deployInfo,
-            actionsUrl: `https://github.com/${ORG}/${repoName}/actions`,
-            pagesSettingsUrl: `https://github.com/${ORG}/${repoName}/settings/pages`
-        };
-    };
-
     try {
-        console.log(`   🚀 Repository aanmaken op GitHub (${ORG}/${repoName})...`);
-        
-        // Alleen de repo aanmaken, nog niet pushen via GH CLI (om credential conflicten te voorkomen)
-        // We dwingen het token af via de GH_TOKEN env variabele
         const createCommand = `gh repo create ${ORG}/${repoName} --public`;
         try {
-            execSync(createCommand, {
-                cwd: projectDir,
-                stdio: 'pipe',
-                env: { ...process.env, GH_TOKEN: GITHUB_PAT }
-            });
-            console.log(`   ✅ Repository aangemaakt.`);
+            execSync(createCommand, { cwd: projectDir, stdio: 'pipe', env: { ...process.env, GH_TOKEN: GITHUB_PAT } });
         } catch (err) {
-            if (err.stderr && err.stderr.toString().includes("already exists")) {
-                console.log(`   ℹ️ Repository bestaat al.`);
-            } else {
-                throw err;
-            }
+            if (!(err.stderr && err.stderr.toString().includes("already exists"))) throw err;
         }
 
-        // Altijd de remote instellen op onze SSH Alias
         const authRemoteUrl = `git@${SSH_HOST}:${ORG}/${repoName}.git`;
-        console.log(`   🔗 Remote instellen op: ${authRemoteUrl}`);
-        
-        try {
-            execSync(`git remote add origin "${authRemoteUrl}"`, { cwd: projectDir, stdio: 'pipe' });
-        } catch (e) {
-            execSync(`git remote set-url origin "${authRemoteUrl}"`, { cwd: projectDir, stdio: 'pipe' });
-        }
+        try { execSync(`git remote add origin "${authRemoteUrl}"`, { cwd: projectDir, stdio: 'pipe' }); }
+        catch (e) { execSync(`git remote set-url origin "${authRemoteUrl}"`, { cwd: projectDir, stdio: 'pipe' }); }
 
-        // Handmatig pushen via Git (die onze SSH config gebruikt)
-        console.log(`   📤 Pushen naar GitHub...`);
         execSync(`git push -u origin main`, { cwd: projectDir, stdio: 'pipe' });
-
-        // --- STAP 6: CONFIG GIT PAGES (AUTOMATION) ---
-        console.log(`   ⚙️  GitHub Pages configureren...`);
-        try {
-            // 1. Maak gh-pages branch aan op remote (kopie van main voor nu, wordt overschreven door action)
-            // Dit is nodig omdat de API faalt als de branch niet bestaat
-            try {
-                execSync(`git push origin main:gh-pages`, { cwd: projectDir, stdio: 'ignore' });
-            } catch (e) {
-                // Branch bestaat misschien al, negeer
-            }
-
-            // 2. Zet settings via GitHub API
-            // source.branch = gh-pages, source.path = /
-            // We gebruiken PUT omdat POST faalt als het al bestaat, en PUT werkt voor create/update in veel gevallen
-            // Of we proberen POST en vallen terug.
-            const apiParams = `-F "source[branch]=gh-pages" -F "source[path]=/"`;
-            try {
-                execSync(`gh api repos/${ORG}/${repoName}/pages -X POST ${apiParams}`, { 
-                    cwd: projectDir, 
-                    stdio: 'ignore', 
-                    env: { ...process.env, GH_TOKEN: GITHUB_PAT } 
-                });
-            } catch (apiErr) {
-                // Als POST faalt (bv omdat het al bestaat), probeer PUT
-                execSync(`gh api repos/${ORG}/${repoName}/pages -X PUT ${apiParams}`, { 
-                    cwd: projectDir, 
-                    stdio: 'ignore', 
-                    env: { ...process.env, GH_TOKEN: GITHUB_PAT } 
-                });
-            }
-            console.log(`   ✅ GitHub Pages ingesteld op branch 'gh-pages'.`);
-        } catch (e) {
-            console.warn(`   ⚠️  Kon GitHub Pages niet automatisch instellen: ${e.message}`);
-        }
         
-        return showSuccess();
-
+        // GH Pages config
+        const apiParams = `-F "source[branch]=gh-pages" -F "source[path]=/"`;
+        try { execSync(`git push origin main:gh-pages`, { cwd: projectDir, stdio: 'ignore' }); } catch(e){}
+        try { execSync(`gh api repos/${ORG}/${repoName}/pages -X POST ${apiParams}`, { cwd: projectDir, stdio: 'ignore', env: { ...process.env, GH_TOKEN: GITHUB_PAT } }); }
+        catch (apiErr) { execSync(`gh api repos/${ORG}/${repoName}/pages -X PUT ${apiParams}`, { cwd: projectDir, stdio: 'ignore', env: { ...process.env, GH_TOKEN: GITHUB_PAT } }); }
+        
+        return {
+            success: true,
+            repoUrl: `https://github.com/${ORG}/${repoName}`,
+            liveUrl: deployUrl,
+            status: 'live'
+        };
     } catch (error) {
         const stderr = error.stderr ? error.stderr.toString() : error.message;
-        console.error(`   ❌ Fout tijdens deploy: ${stderr}`);
-        
-        // Fallback voor force push bij conflicten
-        if (stderr.includes("fetch first") || stderr.includes("rejected") || stderr.includes("non-fast-forward")) {
-            console.log("   ⚠️  Conflict gedetecteerd. Force push uitvoeren...");
+        if (stderr.includes("fetch first") || stderr.includes("rejected")) {
             execSync(`git push --force -u origin main`, { cwd: projectDir, stdio: 'pipe' });
-            return showSuccess();
+            return { success: true, repoUrl: `https://github.com/${ORG}/${repoName}`, liveUrl: deployUrl, status: 'live' };
         }
-        
         throw new Error(`Deployment failed: ${stderr}`);
     }
 }
