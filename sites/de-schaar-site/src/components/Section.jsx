@@ -126,7 +126,8 @@ const Section = ({ data }) => {
         const displayConfigRaw = (data.display_config?.sections || {})[config.table.toLowerCase()] || {};
         const displayConfig = {
           visible_fields: Array.isArray(displayConfigRaw.visible_fields) ? displayConfigRaw.visible_fields : [],
-          hidden_fields: Array.isArray(displayConfigRaw.hidden_fields) ? displayConfigRaw.hidden_fields : []
+          hidden_fields: Array.isArray(displayConfigRaw.hidden_fields) ? displayConfigRaw.hidden_fields : [],
+          inline_fields: Array.isArray(displayConfigRaw.inline_fields) ? displayConfigRaw.inline_fields : []
         };
 
         const metaBind = (key) => metaIndex !== -1
@@ -318,17 +319,17 @@ const Section = ({ data }) => {
                     : [titleKey, descKey, priceKey, ...metaFields].filter(Boolean);
 
                   const renderContents = () => {
-                    const inlineFields = config.inline_fields || [];
+                    const inlineFields = displayConfig.inline_fields || [];
                     
                     return (
-                    <div className="mt-4 flex flex-wrap gap-x-3 gap-y-4 items-baseline">
+                    <div className="mt-4">
                       {renderList.map((k, i) => {
                         const isTitle = (configFields.length === 0 && k === titleKey) || (configFields.length > 0 && i === 0);
                         const isDesc = (configFields.length === 0 && k === descKey) || (configFields.length > 0 && i === 1);
                         const isPrice = k === priceKey;
                         const isInline = inlineFields.includes(k);
 
-                        let className = "text-text " + (isInline ? "inline-block " : "block w-full ");
+                        let className = "text-text " + (isInline ? "inline-block mr-2 mb-2 align-middle " : "block w-full mb-4 ");
                         let tagName = isInline ? "span" : "div";
                         
                         if (isTitle) {

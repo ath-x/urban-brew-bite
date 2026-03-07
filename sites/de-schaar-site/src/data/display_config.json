@@ -19,10 +19,13 @@
         "ligging_omschrijving",
         "parking_info"
       ],
-      "hidden_fields": [],
+      "hidden_fields": [
+        "telefoonnummer"
+      ],
       "inline_fields": [
         "stad",
-        "postcode"
+        "postcode",
+        "straat_nummer"
       ]
     },
     "hero": {
