@@ -30,8 +30,12 @@ To keep your factory running smoothly, we've introduced the **Hydration Manageme
 
 *   **Commands:**
     *   `storage-status`: Check how much space your sites are using.
-    *   `storage-prune-all`: "Dehydrate" all sites to free up space (often saving gigabytes).
+    *   `storage-prune-all`: "Dehydrate" all sites to free up space (often saving gigabytes) and automatically sweep old temporary data.
     *   `doctor-heal [site-name]`: "Rehydrate" a specific site when you need to work on it again.
+
+*   **Temporary Data (`src/data-temp/`)**
+    *   When using Safe Ingress (syncing from GitHub), the system safely pulls your Google Sheet data to a temporary location for comparison to prevent data loss.
+    *   *Note:* The "Clean Sites" button (`storage-prune-all`) will automatically delete any temporary data folders older than 3 weeks to prevent infinite disk space accumulation.
 
 ### 3. Nightly Health Monitor
 
@@ -45,6 +49,7 @@ The factory now includes a `athena-monitor.sh` script designed to run every nigh
 The Athena Dashboard (port 5001) has been updated with:
 *   **Storage & Health Tab:** Visual interface for `storage-status` and one-click cleanup buttons ("pnpm Prune", "Clean Sites").
 *   **Marketing Tools:** Buttons to trigger Blog and SEO generation directly from the interface.
+*   **Safe Ingress Prompt:** When you open a site connected to GitHub, the Dock will check for differences ("Data Drift") and prompt you to sync. A backup is always created locally before syncing.
 
 ## ❓ FAQ
 

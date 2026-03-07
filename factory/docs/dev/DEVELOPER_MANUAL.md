@@ -200,6 +200,13 @@ Managed by `sync-sheet-to-json.js` via `AthenaDataManager`.
 To safely manage project images without breaking the site, use the **Media Auditor**:
 `node factory/6-utilities/audit-media.js <project-name>`
 
+### 🛡️ Safe Ingress (GitHub Sync)
+When opening a site in the Dock, the system automatically checks if it is connected to a GitHub repository.
+- **Drift Detection**: It fetches origin to detect data drift between local and GitHub.
+- **Safe Pull**: If a pull is requested, the system **automatically creates a local backup** of the `src/data/` directory before pulling from GitHub.
+- **Sparse Checkout**: The pull operation uses `git sparse-checkout` to only pull the specific site directory, preventing the monorepo from overriding other sites.
+- **Temporary Data Pulls**: `pull-to-temp` is used to fetch Sheet data into a separate `src/data-temp/` directory for safe comparisons against local edits before syncing.
+
 ## 📝 Git Workflow SOP
 1.  **Sync**: `git pull origin main` for factory and dock.
 2.  **Develop**: Make changes in boilerplates or engine.
@@ -245,7 +252,7 @@ A new dedicated tab provides visibility into the **Hydration Management System**
 *   **Disk Usage**: Real-time visualization of `node_modules` vs project data.
 *   **Actions**:
     *   **pnpm Prune**: Cleans the global pnpm store.
-    *   **Clean Sites**: Triggers `storage-prune-all` to dehydrate inactive sites.
+    *   **Clean Sites**: Triggers `storage-prune-all` to dehydrate inactive sites and sweeps all `src/data-temp/` directories older than 3 weeks to save space.
     *   **Logs**: View and rotate system logs.
 
 ### 2. Marketing Tools
