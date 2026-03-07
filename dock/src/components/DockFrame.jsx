@@ -42,7 +42,7 @@ const DockFrame = () => {
       const res = await fetch(`http://${hostname}:${dashboardPort}/api/sites/${siteId}/compare-sources`);
       const data = await res.json();
 
-      if (data.hasDrift) {
+      if (data.hasRepo) {
         setConflictReport(data);
         setShowConflictModal(true);
       }
@@ -734,18 +734,20 @@ const DockFrame = () => {
   };
 
   const handlePullFromGitHub = async () => {
-    if (!confirm("Wil je de laatste versie van GitHub ophalen?\n\nJe lokale wijzigingen worden overschreven door de versie in de cloud (Source of Truth).")) return;
+    // Geen confirm meer nodig hier, want de Modal vraagt het al.
     
     setIsConnected(false);
     try {
+      const siteId = typeof selectedSite === 'string' ? selectedSite : (selectedSite.id || selectedSite.name);
       const dashboardPort = import.meta.env.VITE_DASHBOARD_PORT || '5001';
       const hostname = window.location.hostname;
-      const res = await fetch(`http://${hostname}:${dashboardPort}/api/system/pull`, {
+      
+      const res = await fetch(`http://${hostname}:${dashboardPort}/api/sites/${siteId}/safe-pull`, {
         method: 'POST'
       });
       const data = await res.json();
       if (data.success) {
-        alert("✅ Succesvol bijgewerkt vanaf GitHub!");
+        alert("✅ Succesvol bijgewerkt vanaf GitHub (Backup gemaakt)!");
         window.location.reload();
       } else {
         alert("❌ Pull mislukt: " + data.error);

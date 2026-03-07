@@ -379,14 +379,26 @@ export class SiteController {
         const dataDir = paths.dataDir;
         if (!fs.existsSync(dataDir)) throw new Error("Data directory not found.");
 
-        const jsonFiles = fs.readdirSync(dataDir).filter(f => f.endsWith('.json') && f !== 'schema.json');
         const report = {
+            hasRepo: false,
             hasDrift: false,
             files: {}
         };
 
+        // 0. Check if it's a git repo (within the monorepo context)
+        try {
+            execSync('git rev-parse --is-inside-work-tree', { cwd: this.root, stdio: 'ignore' });
+            report.hasRepo = true;
+            // Fetch origin to ensure drift check is against current server state
+            console.log("📡 Fetching origin to check for drift...");
+            execSync('git fetch origin main', { cwd: this.root, stdio: 'ignore' });
+        } catch (e) {
+            return report; // Early exit if no git context
+        }
+
+        const jsonFiles = fs.readdirSync(dataDir).filter(f => f.endsWith('.json') && f !== 'schema.json');
+
         // 1. Fetch GitHub version (origin/main)
-        // We use git show to see the file without pulling
         const getGithubContent = (file) => {
             try {
                 const relPath = path.relative(this.root, path.join(dataDir, file));
@@ -394,18 +406,12 @@ export class SiteController {
             } catch (e) { return null; }
         };
 
-        // 2. Fetch Google Sheet version (Simulated fetch-data to memory)
-        // For simplicity, we trigger a fetch-data but redirect output to a temp location 
-        // OR we use the DataManager to fetch without saving.
-        // Let's assume for now we look at the last fetched TSV or fetch one-off.
-        
         for (const file of jsonFiles) {
             const localData = JSON.parse(fs.readFileSync(path.join(dataDir, file), 'utf8'));
             const githubData = getGithubContent(file);
             
             const fileReport = {
                 localVsGitHub: this._compareArrays(localData, githubData),
-                // Sheet comparison logic needs fetch-data support for memory
                 drift: false
             };
 
@@ -418,6 +424,37 @@ export class SiteController {
         }
 
         return report;
+    }
+
+    /**
+     * Safe pull: Backup local data before pulling from GitHub
+     */
+    async safePullFromGitHub(id) {
+        const paths = this.dataManager.resolvePaths(id);
+        console.log(`📦 Creating safety backup for ${id} before pull...`);
+        this.dataManager.backupData(paths.siteDir, paths.dataDir);
+
+        const relPath = path.relative(this.root, paths.siteDir);
+        console.log(`📡 Pulling latest changes for ${relPath} only...`);
+        
+        try {
+            // We gebruiken sparse-checkout om alleen de relevante folder te updaten in de monorepo
+            // Dit voorkomt dat we de hele bak aan andere sites overschrijven of binnenhalen
+            execSync('git sparse-checkout init --cone', { cwd: this.root, stdio: 'ignore' });
+            execSync(`git sparse-checkout set ${relPath} factory/dashboard factory/5-engine`, { cwd: this.root, stdio: 'ignore' });
+            execSync('git pull origin main', { cwd: this.root, stdio: 'inherit' });
+            
+            return { success: true, message: `GitHub Sync voltooid voor ${id} (na backup).` };
+        } catch (err) {
+            console.error("❌ Git Pull failed:", err);
+            // Probeer terug te vallen naar gewone pull als sparse faalt, maar waarschuw
+            try {
+                execSync('git pull origin main', { cwd: this.root, stdio: 'inherit' });
+                return { success: true, message: "GitHub Sync voltooid (via fallback pull)." };
+            } catch (fallbackErr) {
+                throw new Error(`Git Pull mislukt: ${fallbackErr.message}`);
+            }
+        }
     }
 
     _compareArrays(arr1, arr2) {

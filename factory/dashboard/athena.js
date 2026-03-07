@@ -194,8 +194,9 @@ app.post('/api/sites/update-deployment', (req, res) => res.json(siteCtrl.updateD
 app.post('/api/sites/:id/pull-from-sheet', async (req, res) => res.json(await siteCtrl.pullFromSheet(req.params.id)));
 app.post('/api/sites/:id/pull-to-temp', async (req, res) => res.json(await siteCtrl.pullToTemp(req.params.id)));
 app.post('/api/sites/:id/sync-to-sheet', async (req, res) => res.json(await siteCtrl.syncToSheet(req.params.id)));
+app.post('/api/sites/:id/safe-pull', async (req, res) => res.json(await siteCtrl.safePullFromGitHub(req.params.id)));
 app.get('/api/sites/:id/compare-sources', async (req, res) => res.json(await siteCtrl.compareSiteSources(req.params.id)));
-app.post('/api/system/pull', async (req, res) => res.json(await siteCtrl.pullFromGitHub()));
+app.post('/api/system/pull', async (req, res) => res.json(await siteCtrl.safePullFromGitHub(req.params.id)));
 
 // --- TOOL API ---
 app.post('/api/onboard', async (req, res) => res.json(toolCtrl.onboard(req.body.companyName, req.body.websiteUrl, req.body.clientEmail)));
