@@ -39,6 +39,14 @@ async function sync() {
         process.exit(1);
     }
 
+    const isTemp = process.argv.includes('--temp');
+    const outputBase = isTemp ? 'src/data-temp' : 'src/data';
+    const outputDir = path.join(process.cwd(), outputBase);
+
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+    }
+
     for (const [name, config] of Object.entries(sources)) {
         // Support voor zowel string (legacy) als object (hybrid config)
         let url = config;
@@ -100,7 +108,7 @@ async function sync() {
                 });
             }
 
-            fs.writeFileSync(path.join(process.cwd(), `src/data/${filename}`), JSON.stringify(finalData, null, 2));
+            fs.writeFileSync(path.join(outputDir, filename), JSON.stringify(finalData, null, 2));
             console.log(`  ✅ ${name} verwerkt -> ${filename}`);
             
         } catch (e) {

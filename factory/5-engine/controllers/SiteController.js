@@ -464,6 +464,14 @@ export class SiteController {
     }
 
     /**
+     * Pull data from Google Sheet to a temporary directory
+     */
+    async pullToTemp(id) {
+        await this.dataManager.pullToTemp(id);
+        return { success: true, message: "Data tijdelijk opgehaald uit Google Sheet voor controle." };
+    }
+
+    /**
      * Deploy site to GitHub Pages
      */
     async deploy(projectName, commitMsg) {

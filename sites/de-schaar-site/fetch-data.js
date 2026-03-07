@@ -39,6 +39,14 @@ async function sync() {
         process.exit(1);
     }
 
+    const isTemp = process.argv.includes('--temp');
+    const outputBase = isTemp ? 'src/data-temp' : 'src/data';
+    const outputDir = path.join(process.cwd(), outputBase);
+
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+    }
+
     for (const [name, config] of Object.entries(sources)) {
         // Support voor zowel string (legacy) als object (hybrid config)
         let url = config;
@@ -59,7 +67,7 @@ async function sync() {
             let json = await csv({ delimiter: '\t', checkType: true }).fromString(tsv.replace(/^\uFEFF/, ''));
 
             // --- INTELLIGENT MERGE ---
-            const existingPath = path.join(process.cwd(), `src/data/${name.toLowerCase()}.json`);
+            const existingPath = path.join(outputDir, `${name.toLowerCase()}.json`);
             let existingData = [];
             if (fs.existsSync(existingPath)) {
                 try { existingData = JSON.parse(fs.readFileSync(existingPath, 'utf8')); }

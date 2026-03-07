@@ -773,10 +773,8 @@ const DockFrame = () => {
         break;
       
       case 'sheet':
-        console.log("📊 Step: Pre-sync check (Pulling Sheets data first to prevent data loss)...");
-        // 2.2: Altijd eerst pullen naar een tijdelijk bestand/backup via de bestaande pull route
-        // De DataManager in de backend doet de backup automatisch.
-        await fetch(`http://${hostname}:${dashboardPort}/api/sites/${siteId}/pull-from-sheet`, { method: 'POST' });
+        console.log("📊 Step: Safe Pull (Backup sheet data to temp before sync)...");
+        await fetch(`http://${hostname}:${dashboardPort}/api/sites/${siteId}/pull-to-temp`, { method: 'POST' });
         
         console.log("📊 Step: Sync to Google Sheets...");
         const sheetRes = await fetch(`http://${hostname}:${dashboardPort}/api/sites/${siteId}/sync-to-sheet`, { method: 'POST' });

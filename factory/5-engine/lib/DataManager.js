@@ -123,6 +123,18 @@ export class AthenaDataManager {
     }
 
     /**
+     * Pull data from Sheet to a temporary directory for safety/comparison
+     */
+    async pullToTemp(projectName) {
+        const paths = this.resolvePaths(projectName);
+        if (!fs.existsSync(paths.siteDir)) throw new Error(`Site directory not found for ${projectName}`);
+
+        console.log(`🚀 Fetching data to temp for '${projectName}'...`);
+        // We use -- --temp to pass the flag THROUGH pnpm to the underlying script
+        execSync('pnpm fetch-data -- --temp', { cwd: paths.siteDir, stdio: 'inherit' });
+    }
+
+    /**
      * Sync TSV to JSON
      */
     async syncTSVToJSON(projectName) {
