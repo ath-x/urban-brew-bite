@@ -23,7 +23,7 @@
       "fontStyle": "normal",
       "textAlign": "left"
     },
-    "slug": "prijzen",
+    "slug": "diensten_tarieven",
     "menu_positie": 2,
     "is_call_to_action": false
   },
@@ -37,7 +37,7 @@
       "fontStyle": "normal",
       "textAlign": "left"
     },
-    "slug": "over-ons",
+    "slug": "teamleden",
     "menu_positie": 3,
     "is_call_to_action": false
   },
@@ -51,7 +51,7 @@
       "fontStyle": "normal",
       "textAlign": "left"
     },
-    "slug": "aveda-info",
+    "slug": "aveda_informatie",
     "menu_positie": 4,
     "is_call_to_action": false
   },
