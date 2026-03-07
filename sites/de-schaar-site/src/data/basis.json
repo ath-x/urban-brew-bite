@@ -6,10 +6,10 @@
     "telefoonnummer": {
       "text": "09 222 99 22",
       "color": "",
-      "fontSize": "",
+      "fontSize": "31",
       "fontWeight": "normal",
       "fontStyle": "normal",
-      "textAlign": "center"
+      "textAlign": "left"
     },
     "copyright_tekst": "© 2026 De Schaar",
     "privacy_beleid_link": "/Privacybeleid",

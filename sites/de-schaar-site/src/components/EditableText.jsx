@@ -12,9 +12,24 @@ export default function EditableText({ tagName: Tag = 'span', value, children, c
   const binding = cmsBind || { file: table, index: id, key: field };
 
   const isObject = typeof actualValue === 'object' && actualValue !== null && !React.isValidElement(actualValue);
-  const content = isObject
-    ? (actualValue.text || actualValue.title || actualValue.label || JSON.stringify(actualValue))
-    : actualValue;
+  
+  let content = actualValue;
+  if (isObject) {
+    if (actualValue.text !== undefined) content = actualValue.text;
+    else if (actualValue.title !== undefined) content = actualValue.title;
+    else if (actualValue.label !== undefined) content = actualValue.label;
+    else content = JSON.stringify(actualValue);
+  }
+  
+  // Ultimate safety: never allow an object to seep into the DOM text Node
+  if (typeof content === 'object' && content !== null && !React.isValidElement(content)) {
+    content = JSON.stringify(content);
+  }
+  
+  // Filter out any literal [object Object] strings that might have been saved by error
+  if (typeof content === 'string' && content === '[object Object]') {
+    content = 'Onbekende tekst';
+  }
 
   const individualStyle = isObject ? {
     color: actualValue.color,

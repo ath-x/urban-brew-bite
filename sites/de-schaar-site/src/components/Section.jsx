@@ -101,7 +101,7 @@ const Section = ({ data }) => {
         const isVisible = sectionMeta.visible !== false;
 
         // Skip technical sections by default
-        if (config.table === 'paginastructuur') return null;
+        if (config.table === 'paginastructuur' || config.table === 'basis' || config.table === 'social_media' || config.table.includes('hoofdgroepen')) return null;
         
         // Skip based on visibility setting (except in Dev mode where we show them dimmed)
         if (!isVisible && !isDev) return null;
