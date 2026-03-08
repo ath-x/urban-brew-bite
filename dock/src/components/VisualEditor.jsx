@@ -23,7 +23,9 @@ const VisualEditor = ({ item, selectedSite, onSave, onCancel, onUpload }) => {
     shadowX: 0,
     shadowY: 0,
     shadowBlur: 0,
-    shadowColor: 'rgba(0,0,0,0.5)'
+    shadowColor: 'rgba(0,0,0,0.5)',
+    paddingTop: 0,
+    paddingBottom: 0
   });
 
   // [v33 Debug Bridge]: Luister naar antwoorden van de site
@@ -54,7 +56,9 @@ const VisualEditor = ({ item, selectedSite, onSave, onCancel, onUpload }) => {
               shadowX: siteValue.shadowX !== undefined ? siteValue.shadowX : 0,
               shadowY: siteValue.shadowY !== undefined ? siteValue.shadowY : 0,
               shadowBlur: siteValue.shadowBlur !== undefined ? siteValue.shadowBlur : 0,
-              shadowColor: siteValue.shadowColor || 'rgba(0,0,0,0.5)'
+              shadowColor: siteValue.shadowColor || 'rgba(0,0,0,0.5)',
+              paddingTop: siteValue.paddingTop !== undefined ? siteValue.paddingTop : 0,
+              paddingBottom: siteValue.paddingBottom !== undefined ? siteValue.paddingBottom : 0
             });
           } else {
             setValue(siteValue || '');
@@ -118,7 +122,8 @@ const VisualEditor = ({ item, selectedSite, onSave, onCancel, onUpload }) => {
       // Check if we have any active styles
       const hasStyles = textStyles.color || textStyles.fontSize || textStyles.fontWeight !== 'normal' || 
                         textStyles.fontStyle !== 'normal' || textStyles.textAlign !== 'left' || 
-                        textStyles.fontFamily || textStyles.shadowBlur > 0 || textStyles.shadowX !== 0 || textStyles.shadowY !== 0;
+                        textStyles.fontFamily || textStyles.shadowBlur > 0 || textStyles.shadowX !== 0 || textStyles.shadowY !== 0 ||
+                        textStyles.paddingTop !== 0 || textStyles.paddingBottom !== 0;
 
       if (hasStyles) {
         finalData = {
@@ -339,26 +344,43 @@ const VisualEditor = ({ item, selectedSite, onSave, onCancel, onUpload }) => {
                 </div>
 
                 <div className="space-y-4 pt-4 md:pt-0 md:border-l md:border-slate-200 md:dark:border-slate-800 md:pl-6">
-                  <label className="text-[10px] font-black uppercase text-blue-500 block">Text Shadow</label>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[9px] uppercase text-slate-400">X-Offset ({textStyles.shadowX}px)</label>
-                      <input type="range" min="-20" max="20" value={textStyles.shadowX} onChange={(e) => setTextStyles(prev => ({ ...prev, shadowX: parseInt(e.target.value) }))} className="w-full accent-blue-500" />
+                  <div className="space-y-6">
+                    <div>
+                      <label className="text-[10px] font-black uppercase text-blue-500 block mb-2">Text Shadow</label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-[9px] uppercase text-slate-400">X-Offset ({textStyles.shadowX}px)</label>
+                          <input type="range" min="-20" max="20" value={textStyles.shadowX} onChange={(e) => setTextStyles(prev => ({ ...prev, shadowX: parseInt(e.target.value) }))} className="w-full accent-blue-500" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] uppercase text-slate-400">Y-Offset ({textStyles.shadowY}px)</label>
+                          <input type="range" min="-20" max="20" value={textStyles.shadowY} onChange={(e) => setTextStyles(prev => ({ ...prev, shadowY: parseInt(e.target.value) }))} className="w-full accent-blue-500" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] uppercase text-slate-400">Blur ({textStyles.shadowBlur}px)</label>
+                          <input type="range" min="0" max="30" value={textStyles.shadowBlur} onChange={(e) => setTextStyles(prev => ({ ...prev, shadowBlur: parseInt(e.target.value) }))} className="w-full accent-blue-500" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] uppercase text-slate-400">Shadow Color</label>
+                          <div className="flex gap-2">
+                            <input type="color" value={textStyles.shadowColor.startsWith('rgba') ? '#000000' : textStyles.shadowColor} onChange={(e) => setTextStyles(prev => ({ ...prev, shadowColor: e.target.value }))} className="w-8 h-8 rounded cursor-pointer border border-slate-200 bg-transparent" />
+                            <button onClick={() => setTextStyles(prev => ({ ...prev, shadowColor: 'rgba(0,0,0,0.5)' }))} className="text-[8px] font-bold text-slate-400 hover:text-blue-500 underline uppercase">Reset</button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-[9px] uppercase text-slate-400">Y-Offset ({textStyles.shadowY}px)</label>
-                      <input type="range" min="-20" max="20" value={textStyles.shadowY} onChange={(e) => setTextStyles(prev => ({ ...prev, shadowY: parseInt(e.target.value) }))} className="w-full accent-blue-500" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[9px] uppercase text-slate-400">Blur ({textStyles.shadowBlur}px)</label>
-                      <input type="range" min="0" max="30" value={textStyles.shadowBlur} onChange={(e) => setTextStyles(prev => ({ ...prev, shadowBlur: parseInt(e.target.value) }))} className="w-full accent-blue-500" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[9px] uppercase text-slate-400">Shadow Color</label>
-                      <div className="flex gap-2">
-                        <input type="color" value={textStyles.shadowColor.startsWith('rgba') ? '#000000' : textStyles.shadowColor} onChange={(e) => setTextStyles(prev => ({ ...prev, shadowColor: e.target.value }))} className="w-8 h-8 rounded cursor-pointer border border-slate-200 bg-transparent" />
-                        <button onClick={() => setTextStyles(prev => ({ ...prev, shadowColor: 'rgba(0,0,0,0.5)' }))} className="text-[8px] font-bold text-slate-400 hover:text-blue-500 underline uppercase">Reset</button>
+
+                    <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                      <label className="text-[10px] font-black uppercase text-purple-500 block mb-2">Vertical Spacing (Padding)</label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-[9px] uppercase text-slate-400">Padding Top ({textStyles.paddingTop}px)</label>
+                          <input type="range" min="0" max="200" value={textStyles.paddingTop} onChange={(e) => setTextStyles(prev => ({ ...prev, paddingTop: parseInt(e.target.value) }))} className="w-full accent-purple-500" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] uppercase text-slate-400">Padding Bottom ({textStyles.paddingBottom}px)</label>
+                          <input type="range" min="0" max="200" value={textStyles.paddingBottom} onChange={(e) => setTextStyles(prev => ({ ...prev, paddingBottom: parseInt(e.target.value) }))} className="w-full accent-purple-500" />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -378,7 +400,9 @@ const VisualEditor = ({ item, selectedSite, onSave, onCancel, onUpload }) => {
                     fontStyle: textStyles.fontStyle,
                     textAlign: textStyles.textAlign,
                     fontFamily: textStyles.fontFamily,
-                    textShadow: shadowString
+                    textShadow: shadowString,
+                    paddingTop: `${textStyles.paddingTop}px`,
+                    paddingBottom: `${textStyles.paddingBottom}px`
                   }}
                 />
               </div>
