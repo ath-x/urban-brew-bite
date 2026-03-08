@@ -1,12 +1,21 @@
 # Changelog - Athena CMS Factory
 
 ## [8.0.7] - 2026-03-08
-### 🎨 Component Excellence & Text Styling v8.4.1
-- **EditableText Upgrade (v8.4.1)**: Uitgebreide styling-mogelijkheden voor de kern `EditableText` component:
-    - **Font Family Selection**: Ondersteuning voor het kiezen van specifieke lettertypen per element.
-    - **Advanced Text Shadows**: Volledige controle over tekstschaduwen, inclusief kleur, X-offset, Y-offset en blur-radius.
-    - **Dynamic Shadow Construction**: De component bouwt nu intelligent de `text-shadow` CSS string op basis van individuele data-velden.
-    - **Batch Rollout**: De upgrade is automatisch uitgerold naar alle 43 actieve componenten in de Factory en sites.
+### 🎨 Component Excellence & Text Styling v8.4.2
+- **EditableText & EditableLink Upgrade**: Volledige upgrade naar v8.4.1 voor alle 43 componenten in het portfolio.
+    - **Advanced Styling**: Support voor Font Family, Text Shadows (X, Y, Blur, Color) en Vertical Padding (Top/Bottom).
+    - **Ironclad Safety**: Geforceerde string-extractie om "Objects are not valid as React child" errors te voorkomen tijdens Undo/Redo.
+- **Dock Sync Bridge v33 (Stabiliteitsfix)**:
+    - **Memory-State Sync**: `saveData` in de Dock updatet nu direct de lokale `siteStructure`. Dit lost de race-conditie op waarbij modals oude data laadden direct na een save.
+    - **Delayed Parameter Loading**: De `VisualEditor` wacht nu op de site-sync alvorens velden in te vullen, wat zorgt voor 100% betrouwbare data-binding.
+    - **Object-Aware Color Pickers**: Globale kleurkiezers in de zijbalk overschrijven gespecialiseerde tekst-objecten niet langer, maar updaten alleen de `color` property.
+- **Multi-Track Preview System**:
+    - Automatische detectie van `feat/**` en `fix/**` branches in CI/CD.
+    - Preview-versies worden nu automatisch gepubliceerd naar een `/preview/` subfolder op GitHub Pages, zonder de live site te beïnvloeden.
+- **Human-Readable Standards**:
+    - Introductie van de **Nederlandstalige veldnamen-regel** in `GEMINI.md`.
+    - Eerste volledige implementatie op `de-schaar-site` (`titel`, `hero_afbeelding`, `header_hoogte`, etc.).
+    - Ontkoppeling van Header- en Hero-titels voor onafhankelijke bewerking.
 
 ## [8.0.6] - 2026-03-06
 ### 🎨 Enhanced Design Controls & Text Styling (v8.3)

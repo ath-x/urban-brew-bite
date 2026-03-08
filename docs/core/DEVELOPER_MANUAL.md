@@ -217,11 +217,31 @@ When opening a site in the Dock, the system automatically checks if it is connec
 
 ---
 
+## 🔱 Multi-Track Preview Environments (v8.4+)
+
+Athena features an automatic preview system for GitHub Pages, allowing developers to test new features without affecting the live production site.
+
+### 1. How it works
+The CI/CD pipeline (`athena-publisher.yml`) automatically detects the current working branch.
+- **Main Track**: Pushes to `main` are deployed to the root of the site (e.g., `.../de-schaar-site/`).
+- **Preview Track**: Pushes to any `feat/**` or `fix/**` branch are automatically deployed to a `/preview/` subfolder (e.g., `.../de-schaar-site/preview/`).
+
+### 2. Implementation details
+To support this, sites must use the `v8.4` deployment workflow which dynamically calculates the `VITE_BASE_URL` based on the branch name and repository path.
+
+---
+
 ## 🏛️ Governance & Data Architecture
 
 Since v7.5, Athena has employed a strict management model ("Governance") to ensure customer data integrity and keep the Google Sheets interface clean.
 
-### 1. Governance Modes
+### 1. Human-Readable Data Rule (Mandatory)
+To maximize user-friendliness for end-clients using Google Sheets, all data keys MUST be in **Dutch** and use natural language.
+- **Bad**: `company_name`, `hero_subtitle`, `opacity_val`.
+- **Good**: `bedrijfsnaam`, `hero_ondertitel`, `doorzichtigheid`.
+- **Fallbacks**: Components should implement Dutch keys first, with English legacy keys as fallback for backward compatibility.
+
+### 2. Governance Modes
 Each site has a `governance_mode` in `athena-config.json`:
 
 *   **`dev-mode` (Development)**:

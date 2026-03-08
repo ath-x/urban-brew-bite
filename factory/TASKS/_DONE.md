@@ -1,10 +1,13 @@
 # ✅ DONE - Athena CMS Factory
 
 ## [2026-03-08] v8.0.7 - Component Excellence Upgrade
-- [x] **EditableText Upgrade (v8.4.1)**: Uitgebreide styling (Font Family, Text Shadows) toegevoegd en uitgerold naar alle 43 componenten.
-- [x] **Batch Upgrade Utility**: `batch-upgrade-editable-text.js` aangemaakt om boilerplates te propageren naar het hele portfolio.
-- [x] **DisplayConfigContext Sync**: Alle bestaande sites voorzien van de ontbrekende context voor `EditableText` compatibiliteit.
-- [x] **App.jsx Wrapper Fix**: Alle site `App.jsx` bestanden veilig gewrapt in `DisplayConfigProvider`.
+- [x] **EditableText & EditableLink Upgrade (v8.4.2)**: Uitgebreide styling (Font Family, Shadows, Padding) toegevoegd en uitgerold naar alle 43 componenten.
+- [x] **Ironclad Rendering Safety**: Fix voor "Objects as React child" error via geforceerde string-extractie.
+- [x] **Memory-State Sync**: Dock updatet nu instant de lokale state na een save (lost race-condities op).
+- [x] **Multi-Track Preview System**: Automatische `/preview/` subfolder activatie op GitHub Pages.
+- [x] **Batch Upgrade Utility**: `batch-upgrade-components.js` aangemaakt voor multi-component portfolio onderhoud.
+- [x] **Human-Readable Standard**: `GEMINI.md` uitgebreid met Nederlandstalige veldnamen-regel.
+- [x] **Site Localization**: De Schaar volledig omgezet naar Nederlandstalige JSON keys.
 
 ## [2026-03-06] v8.0.6 - Design Controls & Text Styling (v8.3)
 - [x] **Header Transparency Slider**: Traploze transparantie slider (0-100%).

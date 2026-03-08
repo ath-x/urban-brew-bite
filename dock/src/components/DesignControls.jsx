@@ -336,16 +336,16 @@ export default function DesignControls({ onColorChange, siteStructure }) {
             <div>
               <div className="flex justify-between items-center mb-1">
                 <label className="text-[9px] font-bold uppercase text-slate-400 block">Hero Overlay Opacity</label>
-                <span className="text-[9px] font-bold text-blue-500">{((parseFloat(localColors.hero_overlay_opacity) ?? 0.8) * 100).toFixed(0)}%</span>
+                <span className="text-[9px] font-bold text-blue-500">{((parseFloat(localColors.hero_overlay_transparantie || localColors.hero_overlay_opacity) ?? 0.8) * 100).toFixed(0)}%</span>
               </div>
               <input
                 type="range"
                 min="0"
                 max="1"
                 step="0.01"
-                value={localColors.hero_overlay_opacity ?? 0.8}
-                onInput={(e) => handlePreview('hero_overlay_opacity', e.target.value)}
-                onChange={(e) => handleSave('hero_overlay_opacity', e.target.value)}
+                value={localColors.hero_overlay_transparantie || localColors.hero_overlay_opacity || 0.8}
+                onInput={(e) => handlePreview('hero_overlay_transparantie', e.target.value)}
+                onChange={(e) => handleSave('hero_overlay_transparantie', e.target.value)}
                 className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
             </div>
@@ -354,26 +354,8 @@ export default function DesignControls({ onColorChange, siteStructure }) {
               <label className="text-[9px] font-bold uppercase text-slate-400 block mb-1">Hero Min Hoogte (bv. 85vh)</label>
               <input
                 type="text"
-                value={localColors.hero_height || '85vh'}
-                onChange={(e) => { handlePreview('hero_height', e.target.value); handleSave('hero_height', e.target.value); }}
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="text-[9px] font-bold uppercase text-slate-400 block mb-1">Hero Max Hoogte (bv. 150vh)</label>
-              <input
-                type="text"
-                value={localColors.hero_max_height || '150vh'}
-                onChange={(e) => { handlePreview('hero_max_height', e.target.value); handleSave('hero_max_height', e.target.value); }}
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="text-[9px] font-bold uppercase text-slate-400 block mb-1">Beeldverhouding (bv. 16/9 of 21/9)</label>
-              <input
-                type="text"
-                value={localColors.hero_aspect_ratio || '16/9'}
-                onChange={(e) => { handlePreview('hero_aspect_ratio', e.target.value); handleSave('hero_aspect_ratio', e.target.value); }}
+                value={localColors.hero_hoogte || localColors.hero_height || '85vh'}
+                onChange={(e) => { handlePreview('hero_hoogte', e.target.value); handleSave('hero_hoogte', e.target.value); }}
                 className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 focus:outline-none"
               />
             </div>

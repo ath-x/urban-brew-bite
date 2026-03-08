@@ -254,11 +254,22 @@ const DockFrame = () => {
       if (shouldSave) {
         let file = 'site_settings';
         if (key.startsWith('header_') || key === 'content_top_offset') file = 'header_settings';
-        else if (key.startsWith('hero_') || key === 'title') file = 'hero';
+        else if (key.startsWith('hero_') || key === 'title' || key === 'titel') file = 'hero';
 
-        const oldValue = siteStructure?.data?.[file]?.[key] || siteStructure?.data?.site_settings?.[key];
-        pushToHistory(file, 0, key, oldValue, value);
-        saveData(file, 0, key, value);
+        // Get actual current value to check if it's an object
+        const currentTable = siteStructure?.data?.[file];
+        const row = Array.isArray(currentTable) ? currentTable[0] : currentTable;
+        const oldValue = row ? row[key] : null;
+
+        if (typeof oldValue === 'object' && oldValue !== null) {
+          // Preserve existing object properties (shadow, font) and only update color
+          const newValue = { ...oldValue, color: value };
+          pushToHistory(file, 0, key, oldValue, newValue);
+          saveData(file, 0, key, newValue);
+        } else {
+          pushToHistory(file, 0, key, oldValue, value);
+          saveData(file, 0, key, value);
+        }
       }
     }
   };
@@ -274,7 +285,20 @@ const DockFrame = () => {
         body: JSON.stringify({ file, index, key, value, formatting, action })
       });
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
-      if (!silent) console.log('✅ Saved:', file, key, value, formatting ? '(with styles)' : '', action ? `(Action: ${action})` : '');
+      
+      // CRUCIAL: Update local state immediately so modals see the change!
+      setSiteStructure(prev => {
+        const newData = { ...prev.data };
+        if (Array.isArray(newData[file])) {
+          newData[file] = [...newData[file]];
+          newData[file][index] = { ...newData[file][index], [key]: value };
+        } else if (newData[file]) {
+          newData[file] = { ...newData[file], [key]: value };
+        }
+        return { ...prev, data: newData };
+      });
+
+      if (!silent) console.log('✅ Saved & Synced:', file, key, value);
     } catch (err) {
       console.error('❌ Save failed:', err);
     }
