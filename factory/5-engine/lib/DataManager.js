@@ -320,7 +320,7 @@ export class AthenaDataManager {
         const urlConfig = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
         
         // Get Spreadsheet ID from the first editUrl
-        const firstUrl = Object.values(urlConfig)[0].editUrl;
+        const firstUrl = (urlConfig._system || Object.values(urlConfig)[0]).editUrl;
         const spreadsheetId = firstUrl.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1];
 
         if (!spreadsheetId) {
@@ -330,68 +330,104 @@ export class AthenaDataManager {
         const auth = this.getAuth();
         const sheets = google.sheets({ version: 'v4', auth });
 
-        // --- 1. CONFIG CHECK & TAB CREATION ---
-        if (urlConfig.site_settings) {
-            const updatedConfig = await this.ensureHiddenTabs(sheets, spreadsheetId, urlConfig, settingsPath);
-            Object.assign(urlConfig, updatedConfig);
-        }
-
-        // --- 2. LOCAL MIGRATION (SPLIT MIXED DATA) ---
+        // --- 1. LOCAL MIGRATION (SPLIT MIXED DATA) ---
         this.migrateSettings(paths.dataDir);
 
+        // --- 2. DETECT ALL LOCAL JSON FILES ---
+        const jsonFiles = fs.readdirSync(paths.dataDir).filter(f => 
+            f.endsWith('.json') && 
+            !f.startsWith('display_config') && 
+            !f.startsWith('layout_settings') && 
+            !f.startsWith('section_settings') &&
+            !f.startsWith('section_order') &&
+            !f.startsWith('schema') &&
+            !f.startsWith('all_data')
+        );
+
+        console.log(`🔍 Detected ${jsonFiles.length} tables to sync.`);
+
         // --- 3. UPLOAD LOOP ---
-        for (const [tabName, config] of Object.entries(urlConfig)) {
-            // Determine file for tab
-            let fileName = `${tabName.toLowerCase()}.json`;
-            if (tabName === '_style_config') fileName = 'style_config.json';
-            if (tabName === '_links_config') fileName = 'links_config.json';
+        for (const fileName of jsonFiles) {
+            let tabName = fileName.replace('.json', '');
+            
+            // Special mapping for system files
+            if (fileName === 'style_config.json') tabName = '_style_config';
+            if (fileName === 'links_config.json') tabName = '_links_config';
             
             const jsonPath = path.join(paths.dataDir, fileName);
+            let jsonData = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
 
-            if (!fs.existsSync(jsonPath)) {
-                 // Skip silently if missing, unless it's a critical config file
-                 if (tabName !== '_style_config' && tabName !== '_links_config') {
-                     console.warn(`  ⚠️ No local JSON file found for ${tabName} (${fileName}), skipping.`);
-                 }
-                 continue;
+            // Ensure tab exists in Google Sheet and url-sheet.json
+            if (!urlConfig[tabName]) {
+                console.log(`  🆕 New table detected: '${tabName}'. Creating tab...`);
+                try {
+                    const sheetMeta = await sheets.spreadsheets.get({ spreadsheetId });
+                    let targetSheet = sheetMeta.data.sheets.find(s => s.properties.title === tabName);
+                    let newSheetId;
+
+                    if (!targetSheet) {
+                        const addRes = await sheets.spreadsheets.batchUpdate({
+                            spreadsheetId,
+                            requestBody: {
+                                requests: [{
+                                    addSheet: {
+                                        properties: {
+                                            title: tabName,
+                                            gridProperties: { rowCount: 1000, columnCount: 20 }
+                                        }
+                                    }
+                                }]
+                            }
+                        });
+                        newSheetId = addRes.data.replies[0].addSheet.properties.sheetId;
+                        console.log(`  ✅ Tab '${tabName}' created.`);
+                    } else {
+                        newSheetId = targetSheet.properties.sheetId;
+                    }
+
+                    urlConfig[tabName] = {
+                        editUrl: `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit#gid=${newSheetId}`,
+                        exportUrl: `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=tsv&gid=${newSheetId}`
+                    };
+                    fs.writeFileSync(settingsPath, JSON.stringify(urlConfig, null, 2));
+                } catch (e) {
+                    console.error(`  ❌ Failed to create tab '${tabName}': ${e.message}`);
+                    continue;
+                }
             }
 
             console.log(`  📤 Uploading ${tabName}...`);
-            let jsonData = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
             
             // Convert to 2D array for Sheets
             let headers = [];
             let rows = [];
 
             if (Array.isArray(jsonData)) {
-                if (jsonData.length === 0) continue;
-                headers = Object.keys(jsonData[0]);
-                rows = [headers];
-                jsonData.forEach(item => {
-                    rows.push(headers.map(h => {
-                        const val = item[h];
-                        if (val && typeof val === 'object' && !Array.isArray(val)) {
-                            // Extract text/title/label if it's a CMS object
-                            return val.text || val.title || val.label || JSON.stringify(val);
-                        }
-                        return val === null || val === undefined ? "" : val;
-                    }));
-                });
+                if (jsonData.length === 0) {
+                    // Empty table, just headers if we can guess them
+                    headers = ["id", "titel"];
+                    rows = [headers];
+                } else {
+                    headers = Object.keys(jsonData[0]);
+                    rows = [headers];
+                    jsonData.forEach(item => {
+                        rows.push(headers.map(h => {
+                            const val = item[h];
+                            if (val && typeof val === 'object' && !Array.isArray(val)) {
+                                return val.text || val.title || val.label || JSON.stringify(val);
+                            }
+                            return val === null || val === undefined ? "" : val;
+                        }));
+                    });
+                }
             } else {
-                // Key-value object (e.g. links_config or style_bindings)
+                // Key-value object
                 headers = ["Key", "Value"];
-                rows = [headers];
-                Object.entries(jsonData).forEach(([k, v]) => {
-                    rows.push([k, typeof v === 'object' ? JSON.stringify(v) : v]);
-                });
+                rows = [headers, ...Object.entries(jsonData).map(([k, v]) => [k, typeof v === 'object' ? JSON.stringify(v) : v])];
             }
 
             try {
-                await sheets.spreadsheets.values.clear({
-                    spreadsheetId,
-                    range: `'${tabName}'!A1:Z1000`,
-                });
-
+                await sheets.spreadsheets.values.clear({ spreadsheetId, range: `'${tabName}'!A1:Z1000` });
                 await sheets.spreadsheets.values.update({
                     spreadsheetId,
                     range: `'${tabName}'!A1`,
@@ -404,6 +440,6 @@ export class AthenaDataManager {
             }
         }
 
-        console.log("✨ Done! The Google Sheet is now in sync with your local visual edits.");
+        console.log("✨ Done! The Google Sheet is now fully synchronized with all your local tables.");
     }
 }
