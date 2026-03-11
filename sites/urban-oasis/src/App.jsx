@@ -5,6 +5,7 @@ import Header from './components/Header';
 import Section from './components/Section';
 import Footer from './components/Footer';
 import StyleInjector from './components/StyleInjector';
+import { StyleProvider } from './components/StyleContext';
 
 import { DisplayConfigProvider } from './components/DisplayConfigContext';
 
