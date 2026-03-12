@@ -99,13 +99,15 @@ export default function SiteCard({ site, activeServer, onRefresh, onSEO, onBlog 
           label="SEO" 
           onClick={() => onSEO(site.name)}
         />
-         <ActionButton 
-          icon="✍️" 
-          label="BLOG" 
-          onClick={() => onBlog(site.name)}
+        <ActionButton 
+          icon="📝" 
+          label="SHEET" 
+          onClick={() => site.sheetUrl ? window.open(site.sheetUrl, '_blank') : alert("Geen Google Sheet gekoppeld aan dit project.")}
+          disabled={!site.sheetUrl}
         />
         <ActionButton 
           icon="🚀" 
+ 
           label="DEPLOY" 
           highlight={true}
           onClick={handleDeploy}
