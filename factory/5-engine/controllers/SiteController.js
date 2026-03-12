@@ -273,12 +273,19 @@ export class SiteController {
 
         if (!fs.existsSync(siteDir)) throw new Error(`Site '${id}' niet gevonden.`);
 
+        // Get site type to decide server
+        let siteType = 'basis';
+        const configPath = path.join(siteDir, 'athena-config.json');
+        if (fs.existsSync(configPath)) {
+            try { siteType = JSON.parse(fs.readFileSync(configPath, 'utf8')).siteType; } catch(e){}
+        }
+
         const previewPort = this.getSitePort(id, siteDir);
 
         // 1. STOP ALLE ANDERE PREVIEWS (behalve het dashboard!)
         try {
             const activeProcesses = this.pm.listActive();
-            const dashboardPort = 5001; // Forceer dashboard poort beveiliging
+            const dashboardPort = 5001; 
             
             for (const port in activeProcesses) {
                 const pNum = parseInt(port);
@@ -286,33 +293,75 @@ export class SiteController {
                     await this.pm.stopProcessByPort(pNum);
                 }
             }
-
-            // Harde poort-vrijgave (indien poort nog bezet is door extern proces)
             await this.pm.stopProcessByPort(previewPort); 
         } catch (e) {}
 
-        // 2. CONTROLEER INSTALLATIE (Niet-blokkerend)
-        if (!fs.existsSync(path.join(siteDir, 'node_modules'))) {
-            console.log(`📦 node_modules ontbreken in ${id}, installatie starten in achtergrond...`);
-            // Start installatie maar wacht er niet op met de API respons
-            this.install(id).catch(err => console.error(`Fout bij installatie ${id}:`, err));
-            return { 
-                success: true, 
-                status: 'installing', 
-                message: 'Installatie is gestart. Even geduld...',
-                url: `http://localhost:${previewPort}/${id}/`
-            };
-        }
+        // 2. START SERVER
+        if (siteType === 'static-legacy') {
+            console.log(`📦 Starting light server (sirv) for static site ${id} on port ${previewPort}...`);
+            // Static sites don't need installation
+            await this.pm.startProcess(id, 'preview', previewPort, 'sirv', [siteDir, '--port', previewPort.toString(), '--host', '--dev', '--single'], { cwd: siteDir });
+        } else {
+            // VITE/APP SITES
+            if (!fs.existsSync(path.join(siteDir, 'node_modules'))) {
+                console.log(`📦 node_modules ontbreken in ${id}, installatie starten in achtergrond...`);
+                this.install(id).catch(err => console.error(`Fout bij installatie ${id}:`, err));
+                return { 
+                    success: true, 
+                    status: 'installing', 
+                    message: 'Installatie is gestart. Even geduld...',
+                    url: `http://localhost:${previewPort}/${id}/`
+                };
+            }
 
-        // 3. START PREVIEW
-        console.log(`🚀 Starting preview for ${id} on port ${previewPort}...`);
-        try {
-            await this.pm.startProcess(id, 'preview', previewPort, 'pnpm', ['dev', '--port', previewPort.toString(), '--host'], { cwd: siteDir });
-        } catch (e) {
-            console.error(`Fout bij starten preview ${id}:`, e.message);
+            console.log(`🚀 Starting Vite preview for ${id} on port ${previewPort}...`);
+            try {
+                await this.pm.startProcess(id, 'preview', previewPort, 'pnpm', ['dev', '--port', previewPort.toString(), '--host'], { cwd: siteDir });
+            } catch (e) {
+                console.error(`Fout bij starten preview ${id}:`, e.message);
+            }
         }
 
         return { success: true, status: 'ready', url: `http://localhost:${previewPort}/${id}/` };
+    }
+
+    /**
+     * Create a new athenified version of an external site
+     */
+    async athenifySite(id) {
+        const sourceDir = path.join(this.sitesExternalDir, id);
+        if (!fs.existsSync(sourceDir)) throw new Error("Bron site niet gevonden in external.");
+
+        const newName = `${id}-ath`;
+        const targetDir = path.join(this.sitesDir, newName);
+
+        if (fs.existsSync(targetDir)) throw new Error(`Doelmap '${newName}' bestaat al.`);
+
+        console.log(`✨ Athenifying ${id} to ${newName}...`);
+        
+        try {
+            // 1. Maak kopie (zonder node_modules)
+            execSync(`mkdir -p "${targetDir}"`);
+            execSync(`rsync -av --exclude 'node_modules' --exclude '.git' "${sourceDir}/" "${targetDir}/"`);
+
+            // 2. Update/Create athena-config.json
+            const config = {
+                projectName: newName,
+                safeName: newName,
+                siteType: 'athenified-legacy',
+                sourceLegacy: id,
+                athenifiedAt: new Date().toISOString()
+            };
+            fs.writeFileSync(path.join(targetDir, 'athena-config.json'), JSON.stringify(config, null, 2));
+
+            // 3. Run Athenafier engine script
+            await this.execService.runEngineScript('athenafier.js', [newName]);
+
+            return { success: true, newName };
+        } catch (e) {
+            console.error("❌ Athenify failed:", e.message);
+            return { success: false, error: e.message };
+        }
     }
 
     /**

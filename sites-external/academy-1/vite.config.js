@@ -9,7 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // De editor plugin is alleen lokaal beschikbaar tijdens development
 let athenaEditorPlugin = null;
-const pluginPath = path.resolve(__dirname, '../../factory-engine/lib/vite-plugin-athena-editor.js');
+const pluginPath = path.resolve(__dirname, '../../factory/5-engine/lib/vite-plugin-athena-editor.js');
 
 if (fs.existsSync(pluginPath)) {
   const module = await import(`file://${pluginPath}`);
@@ -17,7 +17,7 @@ if (fs.existsSync(pluginPath)) {
 }
 
 export default defineConfig({
-  base: '/ath-academy-1/', 
+  base: '/academy-1/', 
   plugins: [
     react(),
     tailwindcss(),

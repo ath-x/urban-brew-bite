@@ -22,6 +22,7 @@ export const ApiService = {
   getSites: () => fetch(`${API_BASE}/sites`).then(res => res.json()),
   getSiteStatus: (name) => fetch(`${API_BASE}/sites/${name}/status`).then(res => res.json()),
   startSiteDev: (id) => fetch(`${API_BASE}/sites/${id}/preview`, { method: 'POST' }).then(res => res.json()),
+  athenifySite: (id) => fetch(`${API_BASE}/sites/${id}/athenify`, { method: 'POST' }).then(res => res.json()),
   stopSiteServer: (port) => fetch(`${API_BASE}/servers/kill/${port}`, { method: 'POST' }).then(res => res.json()),
   deploy: (projectName, commitMsg) => fetch(`${API_BASE}/deploy`, {
     method: 'POST',
@@ -89,6 +90,7 @@ export const ApiService = {
     body: JSON.stringify({ siteName })
   }).then(res => res.json()),
   pruneStorage: () => fetch(`${API_BASE}/storage/prune-all`, { method: 'POST' }).then(res => res.json()),
+  prunePnpmStore: () => fetch(`${API_BASE}/storage/prune-pnpm`, { method: 'POST' }).then(res => res.json()),
   cleanupTempData: () => fetch(`${API_BASE}/storage/cleanup-temp`, { method: 'POST' }).then(res => res.json()),
 
   // Settings

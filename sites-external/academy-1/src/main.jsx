@@ -8,23 +8,21 @@ async function init() {
   const data = {};
   let totalRows = 0;
 
-  // Dummy data loading logic for local development
-  try {
-    const tables = ['academy_info', 'cursussen', 'docenten', 'reviews'];
-    for (const table of tables) {
-      try {
-        const tableData = (await import(`./data/${table}.json`)).default;
-        // We slaan ze op met de originele CamelCase key voor de App component
-        const camelKey = table.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('_');
-        data[camelKey] = tableData;
-        if (Array.isArray(tableData)) totalRows += tableData.length;
-      } catch (e) {
-        console.warn(`Mist ${table}.json`);
-      }
-    }
-  } catch (e) {
-    console.error("Data laad fout:", e);
-  }
+  // Dynamically load all JSON files from the data directory
+  const dataFiles = import.meta.glob('./data/*.json', { eager: true });
+  
+  Object.keys(dataFiles).forEach(path => {
+    const fileName = path.split('/').pop().replace('.json', '');
+    if (fileName === 'schema') return;
+
+    const tableData = dataFiles[path].default || dataFiles[path];
+    
+    // Preserve the original transformation logic for keys
+    const camelKey = fileName.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('_');
+    data[camelKey] = tableData;
+    
+    if (Array.isArray(tableData)) totalRows += tableData.length;
+  });
 
   if (import.meta.env.DEV && totalRows === 0) {
       const banner = document.createElement('div');

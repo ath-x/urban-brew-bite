@@ -191,6 +191,117 @@ importers:
         specifier: ^7.3.1
         version: 7.3.1(jiti@2.6.1)(lightningcss@1.31.1)
 
+  sites-external/academy-1:
+    dependencies:
+      '@heroicons/react':
+        specifier: ^2.2.0
+        version: 2.2.0(react@19.2.4)
+      csvtojson:
+        specifier: ^2.0.10
+        version: 2.0.14
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.2.1(vite@6.4.1(jiti@2.6.1)(lightningcss@1.31.1))
+      '@vitejs/plugin-react':
+        specifier: ^4.0.0
+        version: 4.7.0(vite@6.4.1(jiti@2.6.1)(lightningcss@1.31.1))
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.1
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(jiti@2.6.1)(lightningcss@1.31.1)
+
+  sites-external/bakkerij-de-graankorrel:
+    dependencies:
+      '@heroicons/react':
+        specifier: ^2.2.0
+        version: 2.2.0(react@19.2.4)
+      csvtojson:
+        specifier: ^2.0.10
+        version: 2.0.14
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.2.1(vite@6.4.1(jiti@2.6.1)(lightningcss@1.31.1))
+      '@vitejs/plugin-react':
+        specifier: ^4.0.0
+        version: 4.7.0(vite@6.4.1(jiti@2.6.1)(lightningcss@1.31.1))
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.1
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(jiti@2.6.1)(lightningcss@1.31.1)
+
+  sites-external/dirk-de-witte-kappers:
+    dependencies:
+      csvtojson:
+        specifier: ^2.0.10
+        version: 2.0.14
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.2.1(vite@6.4.1(jiti@2.6.1)(lightningcss@1.31.1))
+      '@vitejs/plugin-react':
+        specifier: ^4.0.0
+        version: 4.7.0(vite@6.4.1(jiti@2.6.1)(lightningcss@1.31.1))
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.1
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(jiti@2.6.1)(lightningcss@1.31.1)
+
+  sites-external/gentse-dakwerken:
+    devDependencies:
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(jiti@2.6.1)(lightningcss@1.31.1)
+
+  sites-external/kdc-it-advies:
+    devDependencies:
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(jiti@2.6.1)(lightningcss@1.31.1)
+
+  sites-external/lex-justitia:
+    devDependencies:
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(jiti@2.6.1)(lightningcss@1.31.1)
+
+  sites-external/pure-bloom-floral:
+    devDependencies:
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(jiti@2.6.1)(lightningcss@1.31.1)
+
+  sites-external/urban-brew-bite:
+    devDependencies:
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(jiti@2.6.1)(lightningcss@1.31.1)
+
   sites/ai-consultant-smartbe:
     dependencies:
       '@heroicons/react':

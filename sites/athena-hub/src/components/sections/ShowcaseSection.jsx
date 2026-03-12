@@ -18,7 +18,7 @@ const ShowcaseSection = ({ sectionName, items, sectionStyle }) => {
       const response = await fetch('https://api.github.com/orgs/athena-cms-factory/repos?sort=updated&per_page=100');
       const repos = await response.json();
       
-      const excludeList = ['athena-x', 'urban-sneakers-store', 'academy-1', 'bakkerij-de-graankorrel', 'dirk-de-witte-kappers'];
+      const excludeList = ['athena-x'];
       
       const data = repos
         .filter(repo => !repo.fork && !excludeList.includes(repo.name)) 
