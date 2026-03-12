@@ -1,7 +1,7 @@
 import { ApiService } from '../services/ApiService';
 import { useToast } from '../services/ToastContext';
 
-export default function SiteCard({ site, activeServer, onRefresh, onSEO, onBlog }) {
+export default function SiteCard({ site, activeServer, onRefresh, onSEO, onSheet }) {
   const { addToast } = useToast();
   const isRunning = !!activeServer;
   const status = site.status || 'local';
@@ -90,11 +90,6 @@ export default function SiteCard({ site, activeServer, onRefresh, onSEO, onBlog 
         />
 
         <ActionButton 
-          icon="📡" 
-          label="SYNC" 
-          onClick={() => ApiService.syncToSheet(site.name).then(res => addToast(res.message, res.success ? 'success' : 'error'))}
-        />
-        <ActionButton 
           icon="📊" 
           label="SEO" 
           onClick={() => onSEO(site.name)}
@@ -102,8 +97,7 @@ export default function SiteCard({ site, activeServer, onRefresh, onSEO, onBlog 
         <ActionButton 
           icon="📝" 
           label="SHEET" 
-          onClick={() => site.sheetUrl ? window.open(site.sheetUrl, '_blank') : alert("Geen Google Sheet gekoppeld aan dit project.")}
-          disabled={!site.sheetUrl}
+          onClick={() => onSheet(site)}
         />
         <ActionButton 
           icon="🚀" 
