@@ -1,30 +1,9 @@
 {
-  "5002": {
-    "pid": 4141,
-    "id": "athena-dock",
-    "type": "dock",
-    "startTime": "2026-03-12T21:23:56.637Z",
-    "logFile": "/home/kareltestspecial/0-IT/2-Productie/athena/athena-x/factory/output/logs/athena-dock-dock.log"
-  },
-  "5003": {
-    "pid": 16255,
-    "id": "layout-editor",
-    "type": "editor",
-    "startTime": "2026-03-12T18:24:34.949Z",
-    "logFile": "/home/kareltestspecial/0-IT/2-Productie/athena/athena-x/factory/output/logs/layout-editor-editor.log"
-  },
-  "5004": {
-    "pid": 9048,
-    "id": "media-mapper",
-    "type": "editor",
-    "startTime": "2026-03-12T18:03:47.136Z",
-    "logFile": "/home/kareltestspecial/0-IT/2-Productie/athena/athena-x/factory/output/logs/media-mapper-editor.log"
-  },
-  "5018": {
-    "pid": 16643,
-    "id": "de-salon-site",
+  "6041": {
+    "pid": 25748,
+    "id": "athena-hub",
     "type": "preview",
-    "startTime": "2026-03-12T21:29:00.656Z",
-    "logFile": "/home/kareltestspecial/0-IT/2-Productie/athena/athena-x/factory/output/logs/de-salon-site-preview.log"
+    "startTime": "2026-03-13T13:42:28.486Z",
+    "logFile": "/home/kareltestspecial/0-IT/2-Productie/athena/athena-x/factory/output/logs/athena-hub-preview.log"
   }
 }
