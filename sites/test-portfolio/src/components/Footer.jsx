@@ -8,8 +8,8 @@ export default function Footer({ profile, socials }) {
       <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
         
         <div className="text-center md:text-left">
-          <div className="text-xl font-bold mb-1">{profile.full_name}</div>
-          <div className="text-sm text-gray-500">{profile.tagline}</div>
+          <div className="text-xl font-bold mb-1">{profile.volledige_naam || profile.full_name || profile.naam || "Portfolio"}</div>
+          <div className="text-sm text-gray-500">{profile.tagline || profile.specialisatie || ""}</div>
         </div>
 
         {socials && socials.length > 0 && (

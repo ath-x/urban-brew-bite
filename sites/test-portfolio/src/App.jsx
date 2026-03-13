@@ -1,22 +1,46 @@
 import React from 'react';
-import Header from './components/Header';
-import Section from './components/Section';
+import Hero from './components/Hero';
+import Projects from './components/Projects';
+import Services from './components/Services';
+import Testimonials from './components/Testimonials';
+import Footer from './components/Footer';
 
 /**
  * App component gegenereerd door Athena Standard Engine
  */
 const App = ({ data }) => {
-  if (!data) return <div class="p-10">Laden...</div>;
+  if (!data) return <div className="p-10 text-center">Laden...</div>;
+
+  // Robuuste data mapping voor de componenten
+  const profile = data.Profiel?.[0] || data.Profile?.[0] || data.Portfolio_Info?.[0] || {};
+  const socials = data.Socials || data.Socialen || [];
+  
+  // Voeg absoluteIndex toe aan items als het ontbreekt (voor de Editor)
+  const prepareData = (list) => {
+    if (!list || !Array.isArray(list)) return [];
+    return list.map((item, idx) => ({
+      ...item,
+      absoluteIndex: item.absoluteIndex !== undefined ? item.absoluteIndex : idx
+    }));
+  };
+
+  const enrichedData = {
+    ...data,
+    Profiel: prepareData(data.Profiel || data.Profile || data.Portfolio_Info),
+    Projecten: prepareData(data.Projecten || data.Projects),
+    Diensten: prepareData(data.Diensten || data.Services),
+    Testimonials: prepareData(data.Testimonials || data.Reviews)
+  };
 
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900">
-      <Header data={data} />
+    <div className="min-h-screen bg-background font-sans text-text selection:bg-accent selection:text-white">
+      <Hero data={enrichedData} />
       <main>
-        <Section data={data} />
+        <Projects data={enrichedData} />
+        <Services data={enrichedData} />
+        <Testimonials data={enrichedData} />
       </main>
-      <footer class="p-10 text-center border-t border-slate-100 text-slate-400 text-sm">
-        &copy; {new Date().getFullYear()} - Gebouwd met Athena CMS
-      </footer>
+      <Footer profile={profile} socials={socials} />
     </div>
   );
 };
